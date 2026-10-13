@@ -11,6 +11,9 @@ src = (here / "src/paywall-v2.src.html").read_text()
 def svg(path, cls):
     s = (ds / path).read_text().strip()
     s = re.sub(r"<\?xml.*?\?>", "", s)
+    if "viewBox" not in s:
+        m = re.search(r'<svg[^>]*?width="([\d.]+)"[^>]*?height="([\d.]+)"', s)
+        s = s.replace("<svg ", f'<svg viewBox="0 0 {m.group(1)} {m.group(2)}" ', 1)
     return s.replace("<svg ", f'<svg class="{cls}" role="img" aria-label="Kickresume" ', 1)
 
 faces = [

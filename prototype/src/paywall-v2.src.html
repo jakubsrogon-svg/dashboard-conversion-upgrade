@@ -1,0 +1,970 @@
+<title>Paywall v2 Prototype</title>
+<style>
+/* Layout: navy review chrome (controls on top, event log on the right) framing a scaled Kickresume builder inside a device frame.
+   App styling follows the Kickresume Design System (colors_and_type.css): coral for primary CTAs + errors only,
+   premium gradient for upgrade surfaces, Henk-Work display / Graphik Web UI, six-tone grey scale, Lucide icons.
+   Kickresume is light-only, so the page commits to one look and sets every color explicitly. */
+:root {
+  color-scheme: dark;
+  /* ---- Kickresume Design System tokens (verbatim) ---- */
+  --kr-primary: #ff5e59; --kr-primary-hover: #ff736e; --kr-primary-active: #cd2927; --kr-primary-light: #f8aca7; --kr-primary-tint: #fff4f3;
+  --kr-blue: #514eea; --kr-blue-darker: #3249bf; --kr-blue-light: #9795f2; --kr-blue-very-light: #f3f2fd; --kr-blue-dark: #081430; --kr-nautilius: #29405c;
+  --kr-btn-dark-hover: #29405c; --kr-btn-dark-press: #3a4c63;
+  --kr-btn-white-hover: #f2f2f2; --kr-btn-grad-hover: linear-gradient(315deg, #b07dff 0%, #7a80ff 100%); --kr-btn-grad-press: linear-gradient(315deg, #8f4fee 0%, #5359e6 100%);
+  --kr-btn-grad-solid: #5b53e6; --kr-btn-grad-tint: #f3f2fd;
+  --kr-premium-gradient: linear-gradient(315deg, #a066ff 0%, #666cff 100%);
+  --kr-grey-100: #3f3f3f; --kr-grey-80: #8c8c8c; --kr-grey-60: #e9e9e9; --kr-grey-40: #f2f2f2; --kr-grey-20: #fafafa; --kr-white: #fff; --kr-background: #f4f7f8;
+  --kr-green: #056640; --kr-green-mint: #1da36e; --kr-light-mint: #edf8f4; --kr-yellow: #ffc107;
+  --kr-font-sans: "Graphik Web", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --kr-font-display: "Henk-Work", "Graphik Web", Georgia, serif;
+  --kr-radius: 6px; --kr-radius-md: 16px; --kr-radius-lg: 24px; --kr-radius-btn: 10px; --kr-radius-pill: 999px;
+  --kr-shadow-dropdown: 1px 2px 10px 0 rgba(0,0,0,.1);
+  --kr-shadow-modal: 1px 2px 20px 0 rgba(0,0,0,.1);
+  --kr-shadow-search-cv: 0 8px 20px 0 rgba(140,140,140,.18);
+  --kr-shadow-premium-light: 1px 2px 6px 0 rgba(160,102,255,.3), 1px 2px 16px 0 rgba(102,108,255,.3);
+  --kr-shadow-premium-heavy: 1px 2px 6px 0 rgba(160,102,255,.3), 1px 2px 16px 0 rgba(102,108,255,1);
+  --kr-focus-ring: 0 0 0 3px rgba(63,63,63,.35);
+  /* ---- prototype chrome (derived from Dark Blue) ---- */
+  --c-bg: #081430; --c-panel: #0e1d40; --c-line: #23335a; --c-fg: #eef0f7; --c-muted: #9aa5c2; --c-accent: var(--kr-blue); --c-hi: #c9c8fa; --c-warn: var(--kr-yellow);
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { background: var(--c-bg); color: var(--c-fg); font-family: var(--kr-font-sans); font-size: 14px; -webkit-font-smoothing: antialiased; }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: none; box-shadow: var(--kr-focus-ring); }
+.shell :focus-visible { box-shadow: 0 0 0 3px rgba(151,149,242,.6); }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+.lucide { width: 20px; height: 20px; flex: none; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---------- chrome ---------- */
+.shell { display: grid; grid-template-rows: auto 1fr; min-height: 100%; }
+.bar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px 22px; padding: 14px 20px; border-bottom: 1px solid var(--c-line); background: var(--c-panel); }
+.bar h1 { margin: 0; font-family: var(--kr-font-display); font-weight: 400; font-size: 22px; letter-spacing: -.4px; line-height: 1.1; }
+.bar h1 small { display: block; font-family: var(--kr-font-sans); font-weight: 400; color: var(--c-muted); font-size: 12px; margin-top: 4px; letter-spacing: .16px; }
+.ctl { display: grid; gap: 6px; }
+.ctl > span { font-size: 10.5px; text-transform: uppercase; letter-spacing: .6px; color: var(--c-muted); font-weight: 500; }
+.seg { display: inline-flex; border: 1px solid var(--c-line); border-radius: var(--kr-radius-btn); overflow: hidden; }
+.seg button { background: transparent; border: 0; padding: 6px 11px; cursor: pointer; color: var(--c-muted); font-size: 13px; font-weight: 500; }
+.seg button:hover { color: var(--c-fg); }
+.seg button[aria-pressed="true"] { background: var(--kr-blue); color: #fff; }
+.seg button + button { border-left: 1px solid var(--c-line); }
+.chrome-input, .chrome-select { background: var(--c-bg); border: 1px solid var(--c-line); border-radius: var(--kr-radius-btn); padding: 6px 10px; font-size: 13px; }
+.chrome-input { width: 110px; font-family: var(--f-mono); }
+.chk { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--c-fg); cursor: pointer; }
+.chk input { accent-color: var(--kr-blue); }
+.chrome-btn { background: transparent; border: 1px solid var(--c-line); color: var(--c-fg); border-radius: var(--kr-radius-btn); padding: 6px 11px; cursor: pointer; font-size: 13px; font-weight: 500; }
+.chrome-btn:hover { background: var(--kr-nautilius); }
+.bar .spacer { flex: 1; }
+
+.work { display: grid; grid-template-columns: minmax(0, 1fr) 340px; min-height: 0; }
+.stage { padding: 22px 20px; display: grid; justify-items: center; align-content: start; gap: 10px; min-width: 0; overflow: hidden; }
+.stage-meta { font-size: 12px; color: var(--c-muted); font-family: var(--f-mono); }
+.scaler { position: relative; }
+.device { position: absolute; top: 0; left: 0; transform-origin: 0 0; background: var(--kr-white); color: var(--kr-grey-100); border-radius: 14px; overflow: hidden; box-shadow: 0 0 0 1px #000, 0 30px 80px rgba(0,0,0,.45); container-type: inline-size; container-name: app; font-family: var(--kr-font-sans); color-scheme: light; letter-spacing: .06px; }
+
+.log { border-left: 1px solid var(--c-line); background: var(--c-panel); display: flex; flex-direction: column; min-height: 0; max-height: calc(100vh - 80px); position: sticky; top: 0; }
+.log-sec { padding: 14px 16px; border-bottom: 1px solid var(--c-line); }
+.log-sec h2 { margin: 0 0 8px; font-size: 10.5px; text-transform: uppercase; letter-spacing: .6px; color: var(--c-muted); font-weight: 500; display: flex; justify-content: space-between; align-items: center; }
+.assign { font-family: var(--f-mono); font-size: 12px; line-height: 1.75; }
+.assign b { color: var(--c-fg); font-weight: 500; }
+.pill { display: inline-block; padding: 1px 8px; border-radius: var(--kr-radius-pill); font-size: 11px; font-family: var(--f-mono); }
+.pill.variant { background: rgba(81,78,234,.3); color: var(--c-hi); }
+.pill.control { background: rgba(154,165,194,.18); color: #d3d8e6; }
+.pill.off { background: rgba(255,193,7,.15); color: var(--c-warn); }
+.events { flex: 1; overflow: auto; padding: 8px 12px 16px; display: flex; flex-direction: column; gap: 8px; min-height: 160px; }
+.ev { border: 1px solid var(--c-line); border-radius: var(--kr-radius); padding: 8px 10px; font-family: var(--f-mono); font-size: 11.5px; animation: evIn .4s ease; }
+.ev-h { display: flex; justify-content: space-between; gap: 8px; }
+.ev-name { color: var(--c-fg); font-weight: 500; }
+.ev-name.new { color: var(--c-hi); }
+.ev-t { color: var(--c-muted); }
+.ev pre { margin: 6px 0 0; white-space: pre-wrap; word-break: break-word; color: var(--c-muted); font-family: inherit; }
+.ev-empty { color: var(--c-muted); font-size: 12.5px; line-height: 1.55; padding: 8px 4px; }
+@keyframes evIn { from { background: rgba(81,78,234,.25); } to { background: transparent; } }
+.launch { display: flex; flex-wrap: wrap; gap: 6px; }
+.launch button { font-size: 12px; padding: 5px 9px; }
+@media (max-width: 960px) {
+  .work { grid-template-columns: 1fr; }
+  .log { border-left: 0; border-top: 1px solid var(--c-line); max-height: none; position: static; }
+  .events { max-height: 420px; }
+}
+@media (max-width: 520px) { .bar { padding: 12px 16px; } .stage { padding: 16px; } }
+
+/* ---------- app: builder (Builder UI kit) ---------- */
+.app { position: absolute; inset: 0; display: grid; grid-template-rows: 72px 1fr; }
+.topbar { display: flex; align-items: center; gap: 14px; padding: 0 24px; background: var(--kr-white); border-bottom: 1px solid var(--kr-grey-60); position: relative; }
+.logo { display: block; height: 22px; width: auto; }
+.logo-sym { display: none; height: 28px; width: auto; }
+.tabs { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: flex; gap: 4px; background: var(--kr-white); border: 1px solid var(--kr-grey-60); border-radius: var(--kr-radius-md); padding: 6px; box-shadow: var(--kr-shadow-dropdown); }
+.tab { padding: 9px 18px; border-radius: 12px; font-size: 15px; font-weight: 500; color: var(--kr-grey-80); }
+.tab.on { color: var(--kr-blue); box-shadow: var(--kr-shadow-dropdown); }
+.top-r { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+.sticker { font-style: italic; font-weight: 700; text-transform: uppercase; color: var(--kr-btn-grad-solid); font-size: 15px; letter-spacing: -.2px; }
+.top-dl { display: inline-flex; align-items: center; gap: 8px; color: var(--kr-blue); font-weight: 500; font-size: 15px; }
+.avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--kr-grey-40); display: grid; place-items: center; font-size: 12px; font-weight: 500; color: var(--kr-grey-100); }
+.editor { display: grid; grid-template-columns: 1fr 380px; min-height: 0; overflow: auto; }
+.preview-col { display: grid; place-items: start center; padding: 28px; min-width: 0; background: var(--kr-background); }
+.panel-col { background: var(--kr-white); border-left: 1px solid var(--kr-grey-60); padding: 22px; display: flex; flex-direction: column; gap: 14px; overflow: auto; }
+.label { margin: 6px 0 0; font-size: 10.5px; text-transform: uppercase; letter-spacing: .6px; color: var(--kr-grey-80); font-weight: 500; }
+@container app (max-width: 900px) {
+  .editor { grid-template-columns: 1fr; }
+  .panel-col { border-left: 0; border-top: 1px solid var(--kr-grey-60); overflow: visible; }
+  .preview-col { padding: 18px 16px 10px; }
+  .tabs { display: none; }
+}
+@container app (max-width: 520px) {
+  .topbar { padding: 0 16px; }
+  .logo { display: none; } .logo-sym { display: block; }
+  .top-dl span { display: none; }
+}
+
+/* resume mock: the user's own document (Martinus template, Source Serif Pro), scaled per use */
+.rbox { position: relative; overflow: hidden; background: #fff; box-shadow: var(--kr-shadow-search-cv); border-radius: var(--kr-radius); flex: none; }
+.resume { position: absolute; top: 0; left: 0; width: 595px; height: 842px; transform-origin: 0 0; padding: 44px 46px; font-family: "Source Serif 4", "Source Serif Pro", Georgia, serif; color: #22242f; font-size: 10.5px; line-height: 1.5; display: grid; grid-template-columns: 1fr 170px; gap: 0 30px; align-content: start; letter-spacing: 0; }
+.resume header { grid-column: 1 / -1; border-bottom: 2px solid #2d3a8c; padding-bottom: 14px; margin-bottom: 18px; }
+.resume h1 { font-weight: 700; font-size: 30px; margin: 0; letter-spacing: -.01em; color: #1b2160; }
+.resume header p { margin: 3px 0 0; font-size: 12px; color: #4f5470; }
+.resume h2 { font-weight: 700; font-size: 13px; color: #2d3a8c; margin: 0 0 6px; text-transform: uppercase; letter-spacing: .06em; }
+.resume .blk { margin-bottom: 16px; }
+.resume .job b { display: block; font-size: 11px; }
+.resume .job span { color: #6a6f88; font-size: 9.5px; }
+.resume .job p { margin: 3px 0 9px; }
+.resume .bar-g { height: 5px; background: #e4e6f2; border-radius: 3px; margin: 3px 0 7px; }
+.resume .bar-g i { display: block; height: 100%; background: #2d3a8c; border-radius: 3px; }
+.resume .chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.resume .chips span { background: #eef0f8; padding: 2px 6px; border-radius: 3px; font-size: 9.5px; }
+
+/* ---------- buttons (DS: 10px radius, weight 500, identical size in every state) ---------- */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 24px; border-radius: var(--kr-radius-btn); border: 1px solid transparent; font: 500 16px/24px var(--kr-font-sans); cursor: pointer; transition: background .25s, box-shadow .3s, border-color .25s, color .25s; text-decoration: none; letter-spacing: .06px; }
+.btn-coral { background: var(--kr-primary); color: #fff; }
+.btn-coral:hover { background: var(--kr-primary-hover); }
+.btn-coral:active { background: var(--kr-primary-active); }
+.btn-coral[disabled] { background: var(--kr-primary-light); cursor: progress; }
+.btn-white { background: #fff; color: var(--kr-grey-100); border-color: var(--kr-grey-60); }
+.btn-white:hover { background: var(--kr-btn-white-hover); }
+.btn-white:active { background: var(--kr-grey-60); }
+.btn-gradient { background: var(--kr-premium-gradient); color: #fff; box-shadow: var(--kr-shadow-premium-light); }
+.btn-gradient:hover { background: var(--kr-btn-grad-hover); box-shadow: var(--kr-shadow-premium-heavy); }
+.btn-gradient:active { background: var(--kr-btn-grad-press); }
+.btn-outline { background: transparent; color: var(--kr-grey-100); border-color: var(--kr-grey-60); }
+.btn-outline:hover { background: var(--kr-grey-40); }
+.btn-sm { min-height: 36px; padding: 6px 16px; font-size: 14px; line-height: 20px; }
+.btn-block { width: 100%; }
+.link { color: var(--kr-blue); font-weight: 500; text-decoration: none; font-size: 14px; display: inline-flex; align-items: center; gap: 4px; }
+.link:hover { color: var(--kr-blue-darker); text-decoration: underline; }
+
+/* ---------- download panel ---------- */
+.card { border: 1px solid var(--kr-grey-60); border-radius: var(--kr-radius); padding: 14px 16px; background: var(--kr-white); }
+.prem-card { color: #fff; background: var(--kr-premium-gradient); border-radius: var(--kr-radius-md); padding: 20px; display: grid; gap: 12px; }
+.prem-card h4 { margin: 0; font-size: 20px; font-weight: 500; letter-spacing: -.3px; line-height: 1.2; }
+.prem-card p { margin: 0; font-size: 14px; line-height: 20px; letter-spacing: .16px; }
+.locked { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.locked li { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; line-height: 20px; }
+.locked .lucide { width: 16px; height: 16px; margin-top: 2px; }
+.locked button.lk { background: none; border: 0; padding: 0; color: #fff; text-decoration: underline; text-decoration-color: rgba(255,255,255,.55); text-underline-offset: 3px; cursor: pointer; text-align: left; font-size: 14px; }
+.locked button.lk:hover { text-decoration-color: #fff; }
+.locked details summary { cursor: pointer; list-style: none; display: inline-flex; align-items: center; gap: 4px; }
+.locked details summary::-webkit-details-marker { display: none; }
+.locked details summary .lucide { width: 16px; height: 16px; margin: 0; transition: transform .2s; }
+.locked details[open] summary .lucide { transform: rotate(180deg); }
+.locked details small { display: block; margin-top: 4px; font-size: 13px; }
+.reassure { font-size: 12px; text-align: center; letter-spacing: .16px; margin-top: -4px; }
+.opts { display: grid; gap: 8px; }
+.opt { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border: 1px solid var(--kr-grey-60); border-radius: var(--kr-radius); background: var(--kr-white); font-weight: 500; font-size: 14px; cursor: pointer; width: 100%; text-align: left; color: var(--kr-grey-100); transition: box-shadow .25s; }
+.opt:hover { box-shadow: var(--kr-shadow-dropdown); }
+.opt .lucide { color: var(--kr-grey-100); }
+.mini { display: flex; gap: 12px; align-items: center; font-size: 14px; color: var(--kr-grey-100); line-height: 20px; }
+.mini b { display: block; font-weight: 500; }
+.share-row { display: flex; gap: 8px; margin-top: 10px; align-items: center; }
+.share-row code { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; background: var(--kr-grey-20); border: 1px solid var(--kr-grey-60); border-radius: var(--kr-radius); padding: 8px 10px; font-size: 12px; font-family: var(--f-mono); color: var(--kr-grey-100); }
+.success-card { background: var(--kr-light-mint); border-radius: var(--kr-radius-md); padding: 20px; display: grid; gap: 10px; color: var(--kr-grey-100); }
+.success-card h4 { margin: 0; font-size: 18px; font-weight: 500; line-height: 24px; display: flex; gap: 10px; align-items: flex-start; }
+.success-card h4 .lucide { color: var(--kr-green-mint); width: 24px; height: 24px; }
+.progress { height: 6px; background: #d3eee3; border-radius: 99px; overflow: hidden; }
+.progress i { display: block; height: 100%; width: 0; background: var(--kr-green-mint); transition: width 1.6s ease; }
+.success-card p { margin: 0; font-size: 14px; line-height: 20px; }
+.toast { position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--kr-blue-dark); color: #fff; padding: 11px 18px; border-radius: var(--kr-radius-btn); font-size: 14px; z-index: 60; box-shadow: var(--kr-shadow-modal); max-width: calc(100% - 32px); }
+
+/* ---------- modals (shared) ---------- */
+.overlay { position: absolute; inset: 0; z-index: 40; background: rgba(8,20,48,.6); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; overflow: auto; animation: fade .2s ease; }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+.x { position: absolute; top: 10px; right: 10px; width: 40px; height: 40px; border-radius: var(--kr-radius-btn); border: 0; background: transparent; cursor: pointer; color: var(--kr-grey-80); display: grid; place-items: center; z-index: 3; transition: background .25s, color .25s; }
+.x:hover { background: var(--kr-grey-40); color: var(--kr-grey-100); }
+.field { display: grid; gap: 6px; }
+.field label { font-size: 14px; font-weight: 500; color: var(--kr-grey-100); }
+.field input { min-height: 48px; border: 1px solid var(--kr-grey-60); border-radius: var(--kr-radius-btn); padding: 12px 16px; font: 400 16px var(--kr-font-sans); background: #fff; color: var(--kr-grey-100); font-variant-numeric: tabular-nums; width: 100%; min-width: 0; outline: none; transition: border-color .15s; }
+.field input::placeholder { color: var(--kr-grey-80); }
+.field input:hover { border-color: var(--kr-grey-80); }
+.field input:focus { border-color: var(--kr-blue); box-shadow: none; }
+.field input[aria-invalid="true"] { border-color: var(--kr-primary); }
+.field .err { font-size: 12px; color: var(--kr-primary-active); letter-spacing: .16px; }
+.card-grid { display: grid; grid-template-columns: 1fr 104px 84px; gap: 10px; }
+@container app (max-width: 420px) { .card-grid { grid-template-columns: 1fr 1fr; } .card-grid .f-num { grid-column: 1 / -1; } }
+.badge { font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: var(--kr-radius-pill); background: var(--kr-blue); color: #fff; letter-spacing: .5px; text-transform: uppercase; line-height: 1.2; }
+.badge.save { background: var(--kr-green); }
+
+/* control: upgrade modal (today) */
+.cm { position: relative; width: min(520px, 100%); background: #fff; border-radius: var(--kr-radius-md); overflow: hidden; box-shadow: var(--kr-shadow-modal); flex: none; }
+.cm-top { background: var(--kr-premium-gradient); color: #fff; padding: 28px 28px 22px; }
+.cm-top h2 { margin: 0 0 14px; font-family: var(--kr-font-display); font-weight: 400; font-size: 32px; line-height: 1.15; letter-spacing: -1px; }
+.cm-top ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 7px; font-size: 15px; }
+.cm-top li { display: flex; gap: 8px; align-items: center; }
+.cm-top li .lucide { width: 18px; height: 18px; }
+.cm .x { color: #fff; }
+.cm .x:hover { background: rgba(255,255,255,.15); color: #fff; }
+.cm-body { padding: 22px 28px 24px; display: grid; gap: 12px; }
+.cplan { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; border: 1px solid var(--kr-grey-60); border-radius: var(--kr-radius-btn); padding: 12px 16px; cursor: pointer; }
+.cplan:has(input:checked) { border-color: var(--kr-blue); background: var(--kr-blue-very-light); }
+.cplan input { accent-color: var(--kr-blue); width: 18px; height: 18px; margin: 0; }
+.cplan .nm { font-weight: 500; display: flex; align-items: center; gap: 8px; font-size: 16px; }
+.cplan .pr { text-align: right; font-weight: 500; font-size: 16px; }
+.cplan .pr small { display: block; font-weight: 400; font-size: 11px; color: #c4c4c4; } /* today: low-contrast billed line (fails 4.5:1) */
+.cm .edu-row { text-align: center; }
+.reviews-band { display: flex; gap: 12px; margin-top: 18px; width: min(760px, 100%); flex-wrap: wrap; justify-content: center; flex: none; }
+.reviews-band div { background: #fff; border-radius: var(--kr-radius); padding: 10px 12px; font-size: 12px; width: 220px; color: var(--kr-grey-100); display: grid; gap: 4px; }
+.pm { position: relative; width: min(480px, 100%); background: #fff; border-radius: var(--kr-radius-md); padding: 24px 26px 22px; display: grid; gap: 14px; box-shadow: var(--kr-shadow-modal); flex: none; }
+.pm h2 { margin: 0; font-family: var(--kr-font-display); font-weight: 400; font-size: 28px; letter-spacing: -1px; }
+.pm .sum { background: var(--kr-grey-20); border: 1px solid var(--kr-grey-60); border-radius: var(--kr-radius); padding: 10px 12px; font-size: 14px; display: flex; justify-content: space-between; gap: 8px; }
+.pm .sum b { font-weight: 500; }
+.dropin { border: 1px solid var(--kr-grey-60); border-radius: var(--kr-radius-btn); overflow: hidden; }
+.dropin > button { display: flex; width: 100%; align-items: center; gap: 10px; padding: 13px 16px; background: #fff; border: 0; border-top: 1px solid var(--kr-grey-60); cursor: pointer; text-align: left; font-weight: 500; color: var(--kr-grey-100); }
+.dropin > button:hover { background: var(--kr-grey-20); }
+.dropin > button:first-child { border-top: 0; }
+.dropin .dropin-card { padding: 4px 16px 16px; display: grid; gap: 10px; }
+.back { background: none; border: 0; color: var(--kr-grey-100); cursor: pointer; font-size: 14px; padding: 0; justify-self: start; display: inline-flex; align-items: center; gap: 4px; }
+.back .lucide { width: 16px; height: 16px; }
+
+/* ---------- variant: one-step paywall ---------- */
+.pw { position: relative; width: min(980px, 100%); max-height: 100%; background: #fff; border-radius: var(--kr-radius-md); box-shadow: var(--kr-shadow-modal); overflow: auto; flex: none; display: grid; grid-template-columns: 1fr 1.08fr; }
+.pw-ctx { background: linear-gradient(180deg, var(--kr-blue-very-light) 0%, #fff 100%); padding: 34px 32px 28px; display: flex; flex-direction: column; gap: 18px; }
+.ctx-head { display: flex; gap: 20px; align-items: flex-start; }
+.ctx-head .txt { display: grid; gap: 10px; min-width: 0; }
+.ctx-title { margin: 0; font-family: var(--kr-font-display); font-weight: 400; font-size: 32px; line-height: 1.12; letter-spacing: -1px; text-wrap: balance; color: var(--kr-grey-100); }
+.ctx-sub { margin: 0; font-size: 16px; line-height: 24px; color: var(--kr-grey-100); }
+.ctx-sub b { font-weight: 500; }
+.feat-ic { width: 64px; height: 64px; border-radius: var(--kr-radius-md); display: grid; place-items: center; background: var(--kr-premium-gradient); color: #fff; flex: none; box-shadow: var(--kr-shadow-premium-light); }
+.feat-ic .lucide { width: 30px; height: 30px; }
+.benefits { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; font-size: 16px; }
+.benefits li { display: flex; gap: 10px; align-items: center; }
+.benefits .lucide { color: var(--kr-btn-grad-solid); }
+.trust { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--kr-grey-100); flex-wrap: wrap; }
+.trust b { font-weight: 500; }
+.stars { display: inline-flex; gap: 2px; }
+.stars svg { width: 18px; height: 18px; display: block; }
+.testi { margin: 0; background: #fff; border: 1px solid var(--kr-grey-60); border-radius: var(--kr-radius); padding: 16px 18px; }
+.testi blockquote { margin: 0 0 12px; font-family: var(--kr-font-display); font-size: 18px; line-height: 25px; letter-spacing: -.3px; color: var(--kr-grey-100); }
+.testi .who { display: flex; gap: 10px; align-items: center; font-size: 14px; }
+.testi .who b { font-weight: 500; }
+.testi .av { width: 32px; height: 32px; border-radius: 50%; background: var(--kr-blue-very-light); display: grid; place-items: center; font-weight: 500; color: var(--kr-blue); font-size: 12px; }
+.ctx-spacer { flex: 1; }
+
+.pw-pay { padding: 32px 32px 22px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.plans { border: 0; margin: 0; padding: 0; display: grid; gap: 8px; }
+.plans legend { padding: 0; margin-bottom: 10px; font-size: 18px; font-weight: 500; line-height: 24px; }
+.vplan { display: grid; grid-template-columns: auto 1fr auto; gap: 2px 12px; align-items: center; border: 1px solid var(--kr-grey-60); border-radius: var(--kr-radius-btn); padding: 11px 16px; cursor: pointer; min-height: 60px; transition: border-color .25s, background .25s, box-shadow .25s; }
+.vplan:hover { box-shadow: var(--kr-shadow-dropdown); }
+.vplan:has(input:checked) { border-color: var(--kr-blue); background: var(--kr-blue-very-light); box-shadow: inset 0 0 0 1px var(--kr-blue); }
+.vplan:has(input:focus-visible) { box-shadow: inset 0 0 0 1px var(--kr-blue), var(--kr-focus-ring); }
+.vplan input { accent-color: var(--kr-blue); width: 18px; height: 18px; margin: 0; grid-row: span 2; }
+.vplan input:focus-visible { box-shadow: none; }
+.vplan .nm { font-weight: 500; font-size: 16px; display: flex; gap: 8px; align-items: center; }
+.vplan .pm-price { font-weight: 500; font-size: 18px; text-align: right; font-variant-numeric: tabular-nums; }
+.vplan .pm-price small { font-weight: 400; font-size: 13px; }
+.vplan .billed { grid-column: 2 / -1; font-size: 14px; color: var(--kr-grey-100); font-variant-numeric: tabular-nums; letter-spacing: .16px; } /* grey-100: ≥4.5:1 per brief; grey-80 would be 3.4:1 */
+.express { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; }
+.xbtn { min-height: 46px; border-radius: var(--kr-radius-btn); border: 1px solid transparent; cursor: pointer; font-weight: 500; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 4px; font-family: -apple-system, "Graphik Web", sans-serif; }
+.xbtn.apple, .xbtn.google { background: #000; color: #fff; }
+.xbtn.google .g { font-weight: 700; background: conic-gradient(#ea4335 0 25%, #fbbc05 0 50%, #34a853 0 75%, #4285f4 0); -webkit-background-clip: text; background-clip: text; color: transparent; font-size: 18px; font-family: Arial, sans-serif; }
+.xbtn.paypal { background: #ffc439; color: #003087; font-style: italic; font-weight: 700; font-family: Verdana, Arial, sans-serif; letter-spacing: -.02em; font-size: 16px; }
+.xbtn.paypal span { color: #009cde; }
+.or { display: flex; align-items: center; gap: 12px; color: var(--kr-grey-100); font-size: 13px; letter-spacing: .16px; }
+.or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--kr-grey-60); }
+.pay-err { background: var(--kr-primary-tint); border: 1px solid var(--kr-primary); color: var(--kr-grey-100); border-radius: var(--kr-radius-btn); padding: 10px 12px; font-size: 14px; line-height: 20px; display: flex; gap: 8px; align-items: flex-start; }
+.pay-err .lucide { color: var(--kr-primary); width: 18px; height: 18px; margin-top: 1px; }
+.paybar { display: grid; gap: 6px; }
+.paybar .due { display: none; }
+.renew { margin: 0; font-size: 13px; color: var(--kr-grey-100); text-align: center; line-height: 19px; letter-spacing: .16px; }
+.secure { margin: 0; font-size: 13px; color: var(--kr-grey-100); display: flex; gap: 6px; align-items: center; justify-content: center; }
+.secure .lucide { width: 15px; height: 15px; color: var(--kr-green-mint); }
+.edu-row { text-align: center; }
+.m-trust { display: none; }
+.thumb-sm { display: none; }
+
+@container app (max-width: 1023px) {
+  .pw { grid-template-columns: 1fr; width: min(560px, 100%); }
+  .pw-ctx { padding: 28px 24px 20px; }
+  .pw-pay { padding: 22px 24px; }
+}
+@container app (max-width: 639px) {
+  .overlay.pw-ov { padding: 0; justify-content: flex-start; }
+  .pw { width: 100%; height: 100%; max-height: none; border-radius: 0; box-shadow: none; display: block; overflow: auto; }
+  .pw-ctx { padding: 16px 56px 14px 16px; gap: 0; background: var(--kr-blue-very-light); }
+  .ctx-head { gap: 12px; align-items: center; }
+  .ctx-title { font-size: 22px; letter-spacing: -.5px; }
+  .ctx-sub, .pw-ctx .trust, .pw-ctx .testi, .pw-ctx .benefits, .ctx-spacer { display: none; }
+  .feat-ic { width: 44px; height: 44px; border-radius: 12px; }
+  .feat-ic .lucide { width: 22px; height: 22px; }
+  .thumb-lg { display: none; } .thumb-sm { display: block; }
+  .pw-pay { padding: 16px 16px 0; gap: 12px; }
+  .paybar { position: sticky; bottom: 0; margin: 4px -16px 0; padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); background: #fff; border-top: 1px solid var(--kr-grey-60); box-shadow: var(--kr-shadow-dropdown); grid-template-columns: auto 1fr; align-items: center; gap: 12px; z-index: 2; order: 10; }
+  .paybar .due { display: block; font-size: 12px; color: var(--kr-grey-100); line-height: 1.2; }
+  .paybar .due b { display: block; font-size: 18px; font-weight: 500; }
+  .pw-after { order: 9; }
+  .m-trust { display: flex; justify-content: center; }
+  .pw .x { top: 12px; right: 8px; }
+}
+
+/* express sheet + processing */
+.sheet-ov { position: absolute; inset: 0; z-index: 50; background: rgba(8,20,48,.5); display: flex; align-items: flex-end; justify-content: center; animation: fade .15s ease; }
+.sheet { width: min(420px, 100%); background: #fff; border-radius: var(--kr-radius-md) var(--kr-radius-md) 0 0; padding: 18px 20px calc(20px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 12px; color: var(--kr-grey-100); animation: up .25s ease-in-out; }
+@keyframes up { from { transform: translateY(30px); opacity: .5; } to { transform: none; opacity: 1; } }
+.sheet .row { display: flex; justify-content: space-between; font-size: 14px; padding: 8px 0; border-bottom: 1px solid var(--kr-grey-60); }
+.sheet h4 { margin: 0; font-size: 18px; font-weight: 500; }
+.sheet small { color: var(--kr-grey-80); font-weight: 400; }
+.spin { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255,255,255,.45); border-top-color: #fff; animation: rot .7s linear infinite; }
+@keyframes rot { to { transform: rotate(360deg); } }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,700&display=swap">
+
+<div class="shell">
+  <header class="bar">
+    <h1>Paywall v2 prototype<small>One-step, context-aware paywall · A/B <code>paywall_v2</code></small></h1>
+    <div class="ctl"><span>Arm</span>
+      <div class="seg" id="armSeg" role="group" aria-label="Arm">
+        <button data-v="auto">By user ID</button><button data-v="control">Control</button><button data-v="variant">Variant</button>
+      </div>
+    </div>
+    <label class="ctl"><span>User ID</span><input id="uid" class="chrome-input" value="u_48213" autocomplete="off"></label>
+    <div class="ctl"><span>Device</span>
+      <div class="seg" id="devSeg" role="group" aria-label="Device">
+        <button data-v="desktop">Desktop</button><button data-v="tablet">Tablet</button><button data-v="mobile">Mobile</button>
+      </div>
+    </div>
+    <div class="ctl"><span>Next payment</span>
+      <div class="seg" id="outSeg" role="group" aria-label="Payment outcome">
+        <button data-v="success">Succeeds</button><button data-v="decline">Declined</button>
+      </div>
+    </div>
+    <div class="ctl"><span>Browser supports</span>
+      <div style="display:flex;gap:12px">
+        <label class="chk"><input type="checkbox" id="apSup" checked> Apple Pay</label>
+        <label class="chk"><input type="checkbox" id="gpSup" checked> Google Pay</label>
+      </div>
+    </div>
+    <label class="ctl"><span>Quarterly badge (§7)</span>
+      <select id="badgeSel" class="chrome-select"><option value="popular">“Popular” (today)</option><option value="save">“Save 37%” (factual)</option></select>
+    </label>
+    <div class="ctl"><span>Kill switch</span><label class="chk"><input type="checkbox" id="kill"> Variant off</label></div>
+    <div class="spacer"></div>
+    <button class="chrome-btn" id="reset">Reset user</button>
+  </header>
+
+  <div class="work">
+    <section class="stage" aria-label="App preview">
+      <div class="stage-meta" id="stageMeta"></div>
+      <div class="scaler" id="scaler"><div class="device" id="device"></div></div>
+    </section>
+
+    <aside class="log" aria-label="Experiment and tracking">
+      <div class="log-sec">
+        <h2>Assignment</h2>
+        <div class="assign" id="assign"></div>
+      </div>
+      <div class="log-sec">
+        <h2>Open paywall from another trigger</h2>
+        <div class="launch" id="launch">
+          <button class="chrome-btn" data-t="ai_writer">AI writer</button>
+          <button class="chrome-btn" data-t="tailoring">Tailoring</button>
+          <button class="chrome-btn" data-t="ats_checker">ATS checker</button>
+          <button class="chrome-btn" data-t="career_map">Career map</button>
+          <button class="chrome-btn" data-t="dashboard">Dashboard</button>
+          <button class="chrome-btn" data-t="promo">Promo</button>
+        </div>
+      </div>
+      <div class="log-sec" style="border-bottom:0;padding-bottom:4px">
+        <h2>Mixpanel events (server-side) <button class="chrome-btn" id="clearLog" style="padding:2px 8px;font-size:11px">Clear</button></h2>
+      </div>
+      <div class="events" id="events" aria-live="polite"></div>
+    </aside>
+  </div>
+</div>
+
+<script>
+/* ===== Config: single source of truth (mirrors backend plan data + trust config) ===== */
+const CONFIG = {
+  flag: "paywall_v2",
+  trustpilot: { score: 4.5, reviews: 1382 },
+  currency: "€",
+  defaultPlan: "quarterly",
+  doc: { id: "doc_7Qm2", file: "Jana_Novak_Resume.pdf" },
+};
+const PLANS = [
+  { id: "yearly",    label: "Yearly",    perMonth: 7,  charge: 84, billedWords: "yearly",         every: "year" },
+  { id: "quarterly", label: "Quarterly", perMonth: 12, charge: 36, billedWords: "every 3 months", every: "3 months" },
+  { id: "monthly",   label: "Monthly",   perMonth: 19, charge: 19, billedWords: "monthly",        every: "month" },
+];
+const LOCKED = [
+  { type: "template", name: "Martinus", setting: "Customize → Template" },
+  { type: "font", name: "Source Serif Pro Bold", setting: "Customize → Fonts" },
+  ...["Graphs", "Work Experience", "Education", "Skills", "Hobbies", "Projects"].map(n => ({ type: "section", name: n, setting: "Edit → " + n })),
+];
+const FEATURES = {
+  ai_writer:   { name: "AI Writer",        line: "It drafts and rewrites your bullet points from your job title in seconds,", icon: "sparkles" },
+  tailoring:   { name: "Resume Tailoring", line: "It matches your resume to a job ad so it gets past the first screen,", icon: "target" },
+  ats_checker: { name: "ATS Checker",      line: "It scores your resume the way hiring software reads it and tells you what to fix,", icon: "scanText" },
+  career_map:  { name: "Career Map",       line: "It shows the roles your experience leads to and the skills that get you there,", icon: "map" },
+};
+
+/* ===== i18n (English source; keys from brief §3.4) ===== */
+const STRINGS = {
+  "paywall_v2.download_panel.title": "Your resume is ready",
+  "paywall_v2.download_panel.body": "It uses {count} Premium items. Unlock them to download it exactly as you designed it.",
+  "paywall_v2.download_panel.sections_item": "Premium layouts in {n} sections",
+  "paywall_v2.download_panel.cta": "Unlock & download PDF",
+  "paywall_v2.reassurance": "Cancel anytime · 14-day money-back guarantee",
+  "paywall_v2.header.download.title": "Download your resume as designed",
+  "paywall_v2.header.download.sub": "Premium unlocks {items} — plus AI writing, ATS checks and 40+ templates.",
+  "paywall_v2.header.feature.title": "Unlock {featureName}",
+  "paywall_v2.plans.title": "Choose your plan",
+  "paywall_v2.plans.billed": "€{amount} billed {period}",
+  "paywall_v2.pay.or_card": "or pay by card",
+  "paywall_v2.cta.download": "Pay €{amount} and download",
+  "paywall_v2.cta.unlock": "Pay €{amount} and unlock",
+  "paywall_v2.renewal": "Renews at €{amount} every {period}. Cancel anytime · 14-day money-back guarantee",
+  "paywall_v2.secure": "Secure payment",
+  "paywall_v2.success.download": "You're Premium. Your PDF is downloading…",
+};
+const t = (k, v = {}) => (STRINGS[k] || k).replace(/\{(\w+)\}/g, (_, n) => v[n] ?? "");
+
+/* ===== State ===== */
+const S = {
+  armMode: "auto", uid: "u_48213", device: "desktop", outcome: "success", apple: true, google: true,
+  badge: "popular", kill: false,
+  premium: false, enrolled: null, plan: CONFIG.defaultPlan, trigger: null,
+  modal: null, downloadState: null, cardFocused: false, payAreaLogged: false,
+};
+const DEVICES = { desktop: [1280, 800], tablet: [768, 1024], mobile: [375, 667] };
+if (window.innerWidth < 700) S.device = "mobile";
+
+function bucket(id) { let h = 2166136261; for (const c of id + CONFIG.flag) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return (h >>> 0) % 100; }
+function arm() {
+  if (S.kill) return "control";
+  if (S.armMode !== "auto") return S.armMode;
+  return bucket(S.uid) < 50 ? "variant" : "control";
+}
+const planById = id => PLANS.find(p => p.id === id);
+const eur = n => CONFIG.currency + n;
+
+/* ===== Event log ===== */
+const NEW_EVENTS = new Set(["Paywall plan select", "Paywall payment method select", "Paywall pay click", "Paywall payment error", "$experiment_started"]);
+let events = [];
+function track(name, props) { events.unshift({ name, props, at: new Date() }); renderLog(); }
+function renderLog() {
+  const el = document.getElementById("events");
+  if (!events.length) { el.innerHTML = `<div class="ev-empty">No events yet. Click the download button in the app, or open the paywall from another trigger above. Events new in this test are highlighted.</div>`; return; }
+  el.innerHTML = events.map(e => `<div class="ev"><div class="ev-h"><span class="ev-name ${NEW_EVENTS.has(e.name) ? "new" : ""}">${esc(e.name)}</span><span class="ev-t">${e.at.toTimeString().slice(0, 8)}</span></div><pre>${esc(JSON.stringify(e.props, null, 1).replace(/^\{\n|\n\}$/g, "").replace(/^ /gm, ""))}</pre></div>`).join("");
+}
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+function enroll(trigger) {
+  if (S.premium || S.enrolled) return;
+  S.enrolled = { arm: arm(), trigger };
+  track("$experiment_started", { "Experiment name": CONFIG.flag, "Variant name": S.enrolled.arm, trigger });
+  renderAssign();
+}
+const curArm = () => (S.enrolled ? S.enrolled.arm : arm());
+
+/* ===== Icons: Lucide (DS default set, 2px stroke, currentColor) ===== */
+const LUCIDE = {
+  lock: '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  circleCheck: '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+  sparkles: '<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/>',
+  target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+  scanText: '<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/>',
+  map: '<path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/>',
+  crown: '<path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z"/><path d="M5 21h14"/>',
+  download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>',
+  x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  fileText: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>',
+  bot: '<path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/>',
+  message: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+  smartphone: '<rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/>',
+  link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+  alert: '<circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>',
+  card: '<rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/>',
+  shield: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
+  arrowLeft: '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
+  arrowRight: '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+  chevronDown: '<path d="m6 9 6 6 6-6"/>',
+};
+const ic = (n, cls = "") => `<svg class="lucide ${cls}" viewBox="0 0 24 24" aria-hidden="true">${LUCIDE[n]}</svg>`;
+/* DS brand star SVGs (StarRow) */
+const STAR_FULL = `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8.36 2.726a1.798 1.798 0 0 1 3.28 0l1.158 2.442c.267.56.781.95 1.377 1.04l2.591.39c1.5.227 2.098 2.143 1.013 3.243l-1.875 1.9a1.948 1.948 0 0 0-.526 1.683l.443 2.683c.256 1.553-1.311 2.737-2.652 2.004l-2.318-1.267a1.766 1.766 0 0 0-1.702 0L6.831 18.11c-1.34.733-2.908-.451-2.652-2.004l.443-2.683a1.948 1.948 0 0 0-.526-1.683l-1.875-1.9c-1.085-1.1-.487-3.016 1.013-3.242l2.591-.392a1.835 1.835 0 0 0 1.377-1.04l1.159-2.44Z" fill="#FFC107"/></svg>`;
+const STAR_HALF = `<svg viewBox="0 0 20 20" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.1 1.703c.312.02.62.118.89.3.259.173.482.422.64.748l1.17 2.418c.27.556.78.942 1.38 1.031l2.59.387c1.5.228 2.1 2.121 1.01 3.212l-1.88 1.883c-.43.436-.63 1.06-.53 1.665l.44 2.657c.26 1.536-1.31 2.716-2.65 1.982l-2.32-1.258a1.75 1.75 0 0 0-.85-.219v-.005c-.264.02-.527.108-.79.196L6.9 18c-1.4.7-3-.4-2.7-2l.4-2.7c.1-.6-.1-1.3-.5-1.7L2.2 9.7c-1.1-1.1-.5-3 1-3.2l2.6-.4c.6-.1 1.1-.4 1.4-1l1.3-2.3c.284-.663.837-1.057 1.49-1.097V1.7h.11v.003Zm0 1.058v12.742c.369.018.74.133.89.193.111.044.221.095.329.154l2.318 1.258.003.001c.542.297 1.317-.152 1.184-.938l-.441-2.66a2.935 2.935 0 0 1 .805-2.531l1.884-1.888c.535-.536.203-1.416-.452-1.516l-2.588-.387A2.84 2.84 0 0 1 11.9 5.607l-.91-1.883c-.162-.3-.55-.877-.89-.963Z" fill="#FFC107"/></svg>`;
+const STAR_EMPTY = STAR_FULL.replace('fill="#FFC107"', 'fill="#e9e9e9"');
+const LOGO = `__LOGO__`;
+const LOGO_SYM = `__LOGO_SYM__`;
+
+/* ===== Resume mock (reused for preview and paywall thumbnail) ===== */
+const RESUME = `<div class="resume" aria-hidden="true">
+  <header><h1>Jana Novák</h1><p>Product Designer · Bratislava · jana.novak@mail.com</p></header>
+  <div>
+    <div class="blk"><h2>Work Experience</h2>
+      <div class="job"><b>Senior Product Designer, Lumen Health</b><span>2022 – present</span><p>Led redesign of the patient booking flow, cutting drop-off by 23%. Built the first shared component library used by 4 product teams.</p></div>
+      <div class="job"><b>Product Designer, Orbit Travel</b><span>2019 – 2022</span><p>Owned search and checkout for mobile. Ran 30+ A/B tests with the growth team; shipped a one-page checkout.</p></div>
+      <div class="job"><b>UX Designer, Pixelcraft Studio</b><span>2017 – 2019</span><p>Designed web apps for fintech and retail clients from discovery to launch.</p></div>
+    </div>
+    <div class="blk"><h2>Education</h2><div class="job"><b>MA Interaction Design, VŠVU</b><span>2015 – 2017</span></div></div>
+    <div class="blk"><h2>Projects</h2><div class="job"><b>Open-source icon set “Linea”</b><p>320 icons, 4k GitHub stars.</p></div></div>
+  </div>
+  <div>
+    <div class="blk"><h2>Skills</h2>
+      ${[["Figma", 95], ["User research", 85], ["Prototyping", 90], ["HTML / CSS", 70]].map(([s, v]) => `<div>${s}</div><div class="bar-g"><i style="width:${v}%"></i></div>`).join("")}
+    </div>
+    <div class="blk"><h2>Graphs</h2><svg width="160" height="70" viewBox="0 0 160 70"><g fill="#2d3a8c">${[40, 55, 30, 62, 48].map((h, i) => `<rect x="${i * 32 + 4}" y="${70 - h}" width="22" height="${h}" rx="2" opacity="${0.5 + i * 0.1}"/>`).join("")}</g></svg></div>
+    <div class="blk"><h2>Hobbies</h2><div class="chips"><span>Bouldering</span><span>Film photography</span><span>Ceramics</span></div></div>
+  </div>
+</div>`;
+function rbox(w, cls = "") { const s = w / 595; return `<div class="rbox ${cls}" style="width:${w}px;height:${Math.round(842 * s)}px">${RESUME.replace('class="resume"', `class="resume" style="transform:scale(${s})"`)}</div>`; }
+
+/* ===== App render ===== */
+function renderApp() {
+  const d = document.getElementById("device");
+  const previewW = S.device === "desktop" ? 480 : S.device === "tablet" ? 360 : 240;
+  d.innerHTML = `<div class="app">
+    <div class="topbar">
+      ${LOGO}${LOGO_SYM}
+      <nav class="tabs" aria-label="Builder steps"><span class="tab">Edit</span><span class="tab">Customize</span><span class="tab">Improve</span><span class="tab">Tailor</span></nav>
+      <div class="top-r">
+        ${S.premium ? `<span class="sticker">Premium</span>` : ""}
+        <span class="top-dl" aria-current="page">${ic("download")}<span>Download</span></span>
+        <span class="avatar" aria-hidden="true">JN</span>
+      </div>
+    </div>
+    <div class="editor">
+      <div class="preview-col">${rbox(previewW)}</div>
+      <div class="panel-col" id="panel">${renderPanel()}</div>
+    </div>
+  </div><div id="modalRoot"></div><div id="sheetRoot"></div><div id="toastRoot"></div>`;
+  bindPanel();
+  if (!S.premium) enroll("download");
+  renderModal();
+}
+
+function lockedGroups() {
+  return { tpl: LOCKED.find(l => l.type === "template"), font: LOCKED.find(l => l.type === "font"), secs: LOCKED.filter(l => l.type === "section") };
+}
+
+function renderPanel() {
+  const a = curArm();
+  let top;
+  if (S.downloadState) {
+    const done = S.downloadState === "done";
+    top = `<div class="success-card" role="status">
+      <h4>${ic("circleCheck")} <span>${done ? "You're Premium." : t("paywall_v2.success.download")}</span></h4>
+      <div class="progress"><i id="dlProg"></i></div>
+      <p>${done ? `${CONFIG.doc.file} downloaded. If your download didn’t start:` : `Preparing ${CONFIG.doc.file}`}</p>
+      ${done ? `<button class="btn btn-coral btn-block" data-act="dl-again">${ic("download")} Download PDF</button>` : ""}
+    </div>`;
+  } else if (S.premium) {
+    top = `<div class="card" style="display:grid;gap:12px"><div class="mini"><span style="color:var(--kr-green-mint);display:flex">${ic("circleCheck")}</span><div><b>All Premium items unlocked</b>Download your resume in full quality.</div></div>
+      <button class="btn btn-coral btn-block" data-act="dl-premium">${ic("download")} Download as PDF</button></div>`;
+  } else if (a === "variant") {
+    const { tpl, font, secs } = lockedGroups();
+    top = `<div class="prem-card">
+      <h4>${t("paywall_v2.download_panel.title")}</h4>
+      <p>${t("paywall_v2.download_panel.body", { count: LOCKED.length })}</p>
+      <ul class="locked">
+        <li>${ic("lock")}<button class="lk" data-set="${tpl.setting}">${tpl.name} template</button></li>
+        <li>${ic("lock")}<button class="lk" data-set="${font.setting}">${font.name} font</button></li>
+        <li>${ic("lock")}<details><summary>${t("paywall_v2.download_panel.sections_item", { n: secs.length })} ${ic("chevronDown")}</summary>
+          <small>${secs.map(s => `<button class="lk" data-set="${s.setting}">${s.name}</button>`).join(", ")}</small></details></li>
+      </ul>
+      <button class="btn btn-white btn-block" data-act="unlock">${ic("lock")} ${t("paywall_v2.download_panel.cta")}</button>
+      <div class="reassure">${t("paywall_v2.reassurance")}</div>
+    </div>`;
+  } else {
+    const { tpl, font, secs } = lockedGroups();
+    top = `<div class="prem-card">
+      <h4>Upgrade to Premium</h4>
+      <p>Your resume is using Premium features. Upgrade to download.</p>
+      <ul class="locked">
+        <li>${ic("lock")}<button class="lk" data-set="${tpl.setting}">Premium ${tpl.name} template</button></li>
+        <li>${ic("lock")}<button class="lk" data-set="${font.setting}">${font.name} font</button></li>
+        <li>${ic("lock")}<span>${secs.map(s => s.name).join(", ")} premium sections</span></li>
+      </ul>
+      <button class="btn btn-white btn-block" data-act="control-dl">Download as PDF</button>
+    </div>`;
+  }
+  return `${top}
+    <h3 class="label">Other options</h3>
+    <div class="opts">
+      <button class="opt" data-act="free" data-n="Export Text Only">${ic("fileText")}Export Text Only</button>
+      <button class="opt" data-act="free" data-n="Send to Claude">${ic("message")}Send to Claude</button>
+      <button class="opt" data-act="free" data-n="Send to ChatGPT">${ic("bot")}Send to ChatGPT</button>
+    </div>
+    <div class="card mini">${ic("smartphone")}<div><b>Get the mobile app</b>Edit your resume on the go.</div></div>
+    <div class="card"><div class="mini">${ic("link")}<div><b>Share a link</b>Anyone with the link can view your resume.</div></div>
+      <div class="share-row"><code>kickresume.com/cv/jana-novak</code><button class="btn btn-outline btn-sm" data-act="free" data-n="Link copied">Copy</button></div></div>`;
+}
+
+function bindPanel() {
+  document.getElementById("panel").onclick = e => {
+    const lk = e.target.closest("[data-set]");
+    if (lk) return toast(`Opens ${lk.dataset.set}`);
+    const b = e.target.closest("[data-act]"); if (!b) return;
+    const act = b.dataset.act;
+    if (act === "control-dl" || act === "unlock") {
+      track("Download click", { has_premium_items: true, variant: curArm() });
+      openPaywall("download");
+    } else if (act === "dl-premium") {
+      track("Download click", { has_premium_items: true, variant: curArm() });
+      track("CV download", { source: "download_panel", document_id: CONFIG.doc.id });
+      toast(`Downloading ${CONFIG.doc.file}`);
+    } else if (act === "dl-again") {
+      track("CV download", { source: "post_purchase_retry", document_id: CONFIG.doc.id });
+      toast(`Downloading ${CONFIG.doc.file}`);
+    } else if (act === "free") toast(b.dataset.n === "Link copied" ? "Link copied" : `${b.dataset.n} (free path, unchanged)`);
+  };
+}
+
+function toast(msg) {
+  const r = document.getElementById("toastRoot"); if (!r) return;
+  r.innerHTML = `<div class="toast" role="status">${esc(msg)}</div>`;
+  clearTimeout(toast._t); toast._t = setTimeout(() => { r.innerHTML = ""; }, 2200);
+}
+
+/* ===== Paywall open ===== */
+function openPaywall(trigger) {
+  if (S.premium) { toast("Already Premium. Feature is unlocked."); return; }
+  enroll(trigger);
+  S.trigger = trigger; S.plan = CONFIG.defaultPlan; S.cardFocused = false; S.payAreaLogged = false; S.error = null;
+  const a = curArm();
+  track("Upgrade modal display", { trigger, variant: a, locked_items_count: trigger === "download" ? LOCKED.length : 0 });
+  S.modal = a === "variant" ? "pw" : "upgrade";
+  S.lastFocus = document.activeElement;
+  renderModal();
+}
+function closeModal() { S.modal = null; renderModal(); if (S.lastFocus && document.contains(S.lastFocus)) S.lastFocus.focus(); }
+
+function badgeHTML(p) {
+  if (p.id !== "quarterly") return "";
+  return S.badge === "popular" ? `<span class="badge">Popular</span>` : `<span class="badge save">Save ${Math.round((1 - p.perMonth / 19) * 100)}%</span>`;
+}
+
+function renderModal() {
+  const r = document.getElementById("modalRoot"); if (!r) return;
+  if (!S.modal) { r.innerHTML = ""; return; }
+  r.innerHTML = S.modal === "upgrade" ? controlUpgrade() : S.modal === "payment" ? controlPayment() : variantPaywall();
+  bindModal(r);
+  const first = r.querySelector("input:checked") || r.querySelector("button");
+  first && first.focus({ preventScroll: true });
+}
+const closeBtn = () => `<button class="x" data-close aria-label="Close">${ic("x")}</button>`;
+const eduLink = arrow => `<div class="edu-row"><a class="link" href="#edu" data-act="edu">Student or teacher? Get Premium free${arrow ? " " + ic("arrowRight") : ""}</a></div>`;
+
+/* --- control: today's two steps --- */
+function controlUpgrade() {
+  return `<div class="overlay" data-ov>
+    <div class="cm" role="dialog" aria-modal="true" aria-labelledby="cmT">
+      ${closeBtn()}
+      <div class="cm-top"><h2 id="cmT">Premium = more jobs. Period.</h2>
+        <ul>${["All premium templates and fonts", "AI Writer for every section", "ATS resume checker", "Unlimited PDF downloads"].map(b => `<li>${ic("check")}${b}</li>`).join("")}</ul></div>
+      <div class="cm-body">
+        <div role="radiogroup" aria-label="Plan" style="display:grid;gap:8px">
+        ${PLANS.map(p => `<label class="cplan"><input type="radio" name="cplan" value="${p.id}" ${p.id === S.plan ? "checked" : ""}>
+          <span class="nm">${p.label} ${badgeHTML(p)}</span>
+          <span class="pr">${eur(p.perMonth)}/mo<small>${eur(p.charge)} billed ${p.billedWords}</small></span></label>`).join("")}
+        </div>
+        <button class="btn btn-coral btn-block" data-act="to-billing">Continue to Billing</button>
+        ${eduLink(false)}
+      </div>
+    </div>
+    <div class="reviews-band" aria-label="Reviews">
+      ${["“Got three interviews in a week.”", "“The templates look so professional.”", "“AI writer saved me hours.”"].map(q => `<div><span class="stars">${STAR_FULL.repeat(5)}</span>${q}</div>`).join("")}
+    </div>
+  </div>`;
+}
+function controlPayment() {
+  const p = planById(S.plan);
+  return `<div class="overlay" data-ov>
+    <div class="pm" role="dialog" aria-modal="true" aria-labelledby="pmT">
+      ${closeBtn()}
+      <button class="back" data-act="back">${ic("arrowLeft")} Change plan</button>
+      <h2 id="pmT">Billing</h2>
+      <div class="sum"><span>${p.label} plan</span><b>${eur(p.charge)} / ${p.every}</b></div>
+      <div class="dropin">
+        <button data-act="noop">${ic("card")} Card</button>
+        <div class="dropin-card">${cardFields()}</div>
+        <button data-x="paypal">PayPal</button>
+        ${S.apple ? `<button data-x="apple_pay">Apple Pay</button>` : ""}
+        ${S.google ? `<button data-x="google_pay">Google Pay</button>` : ""}
+      </div>
+      <div id="errSlot">${S.error ? errHTML() : ""}</div>
+      <button class="btn btn-coral btn-block" data-pay>Subscribe</button>
+    </div>
+  </div>`;
+}
+
+/* --- variant: one step --- */
+function contextHeader() {
+  const tr = S.trigger;
+  if (tr === "download") {
+    const { tpl, font, secs } = lockedGroups();
+    const items = `<b>${tpl.name}</b>, <b>${font.name.replace(/ Bold$/, "")}</b> and <b>${secs.length} premium section layouts</b>`;
+    return `<div class="ctx-head">${rbox(120, "thumb-lg")}${rbox(56, "thumb-sm")}
+      <div class="txt"><h2 class="ctx-title" id="pwT">${t("paywall_v2.header.download.title")}</h2>
+      <p class="ctx-sub">${t("paywall_v2.header.download.sub", { items })}</p></div></div>`;
+  }
+  if (FEATURES[tr]) {
+    const f = FEATURES[tr];
+    return `<div class="ctx-head"><div class="feat-ic">${ic(f.icon)}</div>
+      <div class="txt"><h2 class="ctx-title" id="pwT">${t("paywall_v2.header.feature.title", { featureName: f.name })}</h2>
+      <p class="ctx-sub">${f.line} plus everything else in Premium.</p></div></div>`;
+  }
+  return `<div class="ctx-head"><div class="feat-ic">${ic("crown")}</div>
+    <div class="txt"><h2 class="ctx-title" id="pwT">Premium = more jobs. Period.</h2></div></div>
+    <ul class="benefits">${["All 40+ premium templates and fonts", "AI Writer and ATS checks for every resume", "Unlimited PDF downloads"].map(b => `<li>${ic("check")}${b}</li>`).join("")}</ul>`;
+}
+function trustHTML() {
+  const { score, reviews } = CONFIG.trustpilot;
+  const full = Math.floor(score), half = score - full >= .5;
+  const stars = Array.from({ length: 5 }, (_, i) => i < full ? STAR_FULL : i === full && half ? STAR_HALF : STAR_EMPTY).join("");
+  return `<span class="stars">${stars}</span><span><b>${score}</b> on Trustpilot · ${reviews.toLocaleString("en-US")} reviews</span>`;
+}
+function variantPaywall() {
+  const p = planById(S.plan);
+  return `<div class="overlay pw-ov" data-ov>
+    <div class="pw" role="dialog" aria-modal="true" aria-labelledby="pwT">
+      ${closeBtn()}
+      <section class="pw-ctx">
+        ${contextHeader()}
+        <div class="ctx-spacer"></div>
+        <div class="trust">${trustHTML()}</div>
+        <figure class="testi"><blockquote>“I downloaded my redesigned resume on a Sunday and had two interview invites by Wednesday. Got hired at Lumen Health a month later.”</blockquote>
+          <figcaption class="who"><span class="av">MK</span><span><b>Martin K.</b> · Product Designer</span></figcaption></figure>
+      </section>
+      <section class="pw-pay" aria-label="Plan and payment">
+        <fieldset class="plans"><legend>${t("paywall_v2.plans.title")}</legend>
+          ${PLANS.map(pl => `<label class="vplan"><input type="radio" name="vplan" value="${pl.id}" ${pl.id === S.plan ? "checked" : ""}>
+            <span class="nm">${pl.label} ${badgeHTML(pl)}</span>
+            <span class="pm-price">${eur(pl.perMonth)}<small>/mo</small></span>
+            <span class="billed">${t("paywall_v2.plans.billed", { amount: pl.charge, period: pl.billedWords })}</span></label>`).join("")}
+        </fieldset>
+        <div class="express" aria-label="Express payment">
+          ${S.apple ? `<button class="xbtn apple" data-x="apple_pay" aria-label="Pay with Apple Pay">Apple Pay</button>` : ""}
+          ${S.google ? `<button class="xbtn google" data-x="google_pay" aria-label="Pay with Google Pay"><span class="g">G</span>Pay</button>` : ""}
+          <button class="xbtn paypal" data-x="paypal" aria-label="Pay with PayPal">Pay<span>Pal</span></button>
+        </div>
+        <div class="or">${t("paywall_v2.pay.or_card")}</div>
+        <form id="cardForm" novalidate>${cardFields()}</form>
+        <div id="errSlot">${S.error ? errHTML() : ""}</div>
+        <div class="paybar">
+          <span class="due" id="due"><b>${eur(p.charge)}</b>today</span>
+          <button class="btn btn-coral btn-block" data-pay id="payBtn">${payLabel()}</button>
+        </div>
+        <div class="pw-after" style="display:grid;gap:10px">
+          <p class="renew" id="renew">${t("paywall_v2.renewal", { amount: p.charge, period: p.every })}</p>
+          <p class="secure">${ic("shield")} ${t("paywall_v2.secure")}</p>
+          <div class="trust m-trust">${trustHTML()}</div>
+          ${eduLink(true)}
+          <div style="height:10px"></div>
+        </div>
+      </section>
+    </div>
+  </div>`;
+}
+function payLabel() {
+  return t(S.trigger === "download" ? "paywall_v2.cta.download" : "paywall_v2.cta.unlock", { amount: planById(S.plan).charge });
+}
+function cardFields() {
+  return `<div class="card-grid">
+    <div class="field f-num"><label for="ccNum">Card number</label><input id="ccNum" name="cc-number" inputmode="numeric" autocomplete="cc-number" placeholder="1234 1234 1234 1234" maxlength="19"><span class="err" hidden></span></div>
+    <div class="field"><label for="ccExp">Expiry</label><input id="ccExp" name="cc-exp" inputmode="numeric" autocomplete="cc-exp" placeholder="MM/YY" maxlength="5"><span class="err" hidden></span></div>
+    <div class="field"><label for="ccCvc">CVC</label><input id="ccCvc" name="cc-csc" inputmode="numeric" autocomplete="cc-csc" placeholder="123" maxlength="4"><span class="err" hidden></span></div>
+  </div>`;
+}
+function errHTML() { return `<div class="pay-err" role="alert">${ic("alert")}<span>${esc(S.error)}</span></div>`; }
+
+function updatePayBits() {
+  const p = planById(S.plan);
+  const btn = document.getElementById("payBtn"); if (btn && !btn.disabled) btn.textContent = payLabel();
+  const due = document.getElementById("due"); if (due) due.innerHTML = `<b>${eur(p.charge)}</b>today`;
+  const rn = document.getElementById("renew"); if (rn) rn.textContent = t("paywall_v2.renewal", { amount: p.charge, period: p.every });
+}
+
+function bindModal(r) {
+  const a = curArm();
+  if (S.modal === "pw" && !S.payAreaLogged) { S.payAreaLogged = true; track("Payment modal display", { variant: a, trigger: S.trigger }); }
+  r.onclick = e => {
+    if (e.target.matches("[data-ov]")) return; /* backdrop click does nothing; × and Esc close */
+    if (e.target.closest("[data-close]")) return closeModal();
+    const act = e.target.closest("[data-act]")?.dataset.act;
+    if (act === "edu") { e.preventDefault(); return toast("Opens the student & teacher page (same destination as today)"); }
+    if (act === "to-billing") { S.modal = "payment"; S.error = null; renderModal(); track("Payment modal display", { variant: a }); return; }
+    if (act === "back") { S.modal = "upgrade"; S.error = null; return renderModal(); }
+    const x = e.target.closest("[data-x]");
+    if (x) {
+      track("Paywall payment method select", { method: x.dataset.x, variant: a });
+      if (S.modal === "pw") track("Paywall pay click", { plan: S.plan, method: x.dataset.x, trigger: S.trigger, variant: a });
+      return expressSheet(x.dataset.x);
+    }
+    if (e.target.closest("[data-pay]")) return cardPay();
+  };
+  r.onchange = e => {
+    if (e.target.name === "vplan" || e.target.name === "cplan") {
+      S.plan = e.target.value;
+      track("Paywall plan select", { plan: S.plan, variant: a });
+      updatePayBits();
+    }
+  };
+  r.onfocusin = e => {
+    if (e.target.matches(".field input") && !S.cardFocused) { S.cardFocused = true; track("Paywall payment method select", { method: "card", variant: a }); }
+  };
+  r.oninput = e => {
+    const el = e.target;
+    if (el.id === "ccNum") el.value = el.value.replace(/\D/g, "").slice(0, 16).replace(/(.{4})/g, "$1 ").trim();
+    if (el.id === "ccExp") { let v = el.value.replace(/\D/g, "").slice(0, 4); if (v.length > 2) v = v.slice(0, 2) + "/" + v.slice(2); el.value = v; }
+    if (el.id === "ccCvc") el.value = el.value.replace(/\D/g, "").slice(0, 4);
+    if (el.matches(".field input")) setFieldErr(el, null);
+  };
+  const form = r.querySelector("#cardForm"); if (form) form.onsubmit = e => { e.preventDefault(); cardPay(); };
+}
+
+function setFieldErr(el, msg) {
+  el.setAttribute("aria-invalid", msg ? "true" : "false");
+  const sp = el.parentElement.querySelector(".err"); sp.hidden = !msg; sp.textContent = msg || "";
+}
+function cardPay() {
+  const num = document.getElementById("ccNum"), exp = document.getElementById("ccExp"), cvc = document.getElementById("ccCvc");
+  let ok = true;
+  if (num.value.replace(/\s/g, "").length < 15) { setFieldErr(num, "Enter the full card number."); ok = false; }
+  if (!/^(0[1-9]|1[0-2])\/\d\d$/.test(exp.value)) { setFieldErr(exp, "Use MM/YY."); ok = false; }
+  if (cvc.value.length < 3) { setFieldErr(cvc, "3–4 digits."); ok = false; }
+  if (S.modal === "pw") track("Paywall pay click", { plan: S.plan, method: "card", trigger: S.trigger, variant: curArm() });
+  if (!ok) { (document.querySelector('[aria-invalid="true"]') || num).focus(); return; }
+  process("card");
+}
+function expressSheet(method) {
+  const names = { apple_pay: "Apple Pay", google_pay: "Google Pay", paypal: "PayPal" };
+  const p = planById(S.plan);
+  const root = document.getElementById("sheetRoot");
+  root.innerHTML = `<div class="sheet-ov"><div class="sheet" role="dialog" aria-modal="true" aria-label="${names[method]}">
+    <h4>${names[method]} <small>· simulated</small></h4>
+    <div class="row"><span>Kickresume Premium · ${p.label}</span><b style="font-weight:500">${eur(p.charge)}.00</b></div>
+    <div class="row"><span>Renews</span><span>every ${p.every}</span></div>
+    <button class="btn btn-coral btn-block" data-ok>${method === "paypal" ? "Agree & continue" : "Confirm with " + names[method]}</button>
+    <button class="btn btn-outline btn-block" data-cancel>Cancel</button></div></div>`;
+  root.querySelector("[data-ok]").focus();
+  root.onclick = e => {
+    if (e.target.closest("[data-cancel]")) { root.innerHTML = ""; document.querySelector(`[data-x="${method}"]`)?.focus(); }
+    if (e.target.closest("[data-ok]")) { root.innerHTML = ""; process(method); }
+  };
+}
+function process(method) {
+  const btn = document.querySelector("[data-pay]");
+  if (btn) { btn.disabled = true; btn.innerHTML = `<span class="spin"></span> Processing…`; }
+  const gen = S.gen;
+  setTimeout(() => {
+    if (gen !== S.gen) return;
+    const a = curArm();
+    if (S.outcome === "decline") {
+      S.error = method === "card" ? "Your card was declined. Try another card or PayPal."
+        : method === "paypal" ? "PayPal couldn’t complete the payment. Try a card or another method."
+        : "The payment didn’t go through. Try a card or PayPal.";
+      track("Paywall payment error", { reason: method === "card" ? "card_declined" : "processor_declined", method, variant: a });
+      if (btn) { btn.disabled = false; btn.textContent = S.modal === "pw" ? payLabel() : "Subscribe"; }
+      const slot = document.getElementById("errSlot"); if (slot) slot.innerHTML = errHTML();
+      document.querySelector(".pay-err")?.scrollIntoView({ block: "nearest" });
+      return;
+    }
+    const p = planById(S.plan);
+    track("Subscription creation", { plan: p.id, variant: a, trigger: S.trigger });
+    track("Subscription payment", { plan: p.id, amount: p.charge, currency: "EUR", method, variant: a, trigger: S.trigger });
+    S.premium = true; S.modal = null; S.error = null;
+    const tr = S.trigger;
+    if (a === "variant" && tr === "download") {
+      S.downloadState = "running";
+      renderApp();
+      requestAnimationFrame(() => requestAnimationFrame(() => { const pr = document.getElementById("dlProg"); if (pr) pr.style.width = "100%"; }));
+      track("CV download", { source: "post_purchase_auto", document_id: CONFIG.doc.id });
+      const gen = S.gen; setTimeout(() => { if (gen !== S.gen) return; S.downloadState = "done"; const pnl = document.getElementById("panel"); if (pnl) { pnl.innerHTML = renderPanel(); const pr = document.getElementById("dlProg"); if (pr) pr.style.width = "100%"; } }, 1900);
+    } else {
+      renderApp();
+      if (tr === "download") toast("Payment complete. Control: download does not start automatically (confirm in discovery §1.5).");
+      else toast(`${FEATURES[tr]?.name || "Premium"} unlocked. Returning you to it.`);
+    }
+    renderAssign();
+  }, 1100);
+}
+
+/* ===== Focus trap + Esc ===== */
+document.addEventListener("keydown", e => {
+  const sheet = document.querySelector("#sheetRoot .sheet");
+  const dlg = sheet || document.querySelector("#modalRoot [role=dialog]");
+  if (!dlg) return;
+  if (e.key === "Escape") {
+    e.preventDefault();
+    if (sheet) { document.getElementById("sheetRoot").innerHTML = ""; return; }
+    closeModal(); return;
+  }
+  if (e.key === "Tab") {
+    const f = [...dlg.querySelectorAll("button:not([disabled]), input, a[href], summary, select")].filter(n => n.offsetParent !== null && !(n.type === "radio" && !n.checked));
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    else if (!dlg.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+  }
+});
+
+/* ===== Chrome ===== */
+function renderAssign() {
+  const b = bucket(S.uid), a = arm();
+  const src = S.kill ? `<span class="pill off">kill switch on</span>` : S.armMode === "auto" ? `hash bucket <b>${b}</b> ${b < 50 ? "&lt; 50" : "≥ 50"}` : `<span class="pill off">manual override</span>`;
+  document.getElementById("assign").innerHTML = `
+    user <b>${esc(S.uid)}</b> · ${src}<br>
+    arm now: <span class="pill ${a}">${a}</span><br>
+    enrolled: ${S.enrolled ? `<span class="pill ${S.enrolled.arm}">${S.enrolled.arm}</span> via <b>${S.enrolled.trigger}</b>` : S.premium ? "no (premium, not eligible)" : "not yet"}<br>
+    plan status: <b>${S.premium ? "Premium" : "Free"}</b>`;
+  document.getElementById("stageMeta").textContent = `${S.device} ${DEVICES[S.device].join("×")} · showing ${S.enrolled ? S.enrolled.arm : a}`;
+}
+function setSeg(id, val) { document.querySelectorAll(`#${id} button`).forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === val))); }
+function fit() {
+  const [w, h] = DEVICES[S.device];
+  const avail = document.querySelector(".stage").clientWidth - 40;
+  const availH = Math.max(420, window.innerHeight - document.querySelector(".bar").offsetHeight - 80);
+  const s = Math.min(1, avail / w, availH / h);
+  const d = document.getElementById("device");
+  d.style.width = w + "px"; d.style.height = h + "px"; d.style.transform = `scale(${s})`;
+  const sc = document.getElementById("scaler"); sc.style.width = w * s + "px"; sc.style.height = h * s + "px";
+}
+/* Changing arm, user or kill switch starts a fresh user, because enrolment is sticky by design */
+function resetUser() {
+  S.gen = (S.gen || 0) + 1;
+  Object.assign(S, { premium: false, enrolled: null, modal: null, downloadState: null, trigger: null, plan: CONFIG.defaultPlan, error: null });
+  events = [];
+  renderLog(); renderApp(); renderAssign();
+}
+document.getElementById("armSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.armMode = b.dataset.v; setSeg("armSeg", S.armMode); resetUser(); };
+document.getElementById("devSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.device = b.dataset.v; setSeg("devSeg", S.device); fit(); renderApp(); renderAssign(); };
+document.getElementById("outSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.outcome = b.dataset.v; setSeg("outSeg", S.outcome); };
+document.getElementById("uid").oninput = e => { S.uid = e.target.value.trim() || "u_0"; resetUser(); };
+document.getElementById("apSup").onchange = e => { S.apple = e.target.checked; renderModal(); };
+document.getElementById("gpSup").onchange = e => { S.google = e.target.checked; renderModal(); };
+document.getElementById("badgeSel").onchange = e => { S.badge = e.target.value; renderModal(); };
+document.getElementById("kill").onchange = e => { S.kill = e.target.checked; resetUser(); };
+document.getElementById("reset").onclick = resetUser;
+document.getElementById("clearLog").onclick = () => { events = []; renderLog(); };
+document.getElementById("launch").onclick = e => { const b = e.target.closest("button[data-t]"); if (b) openPaywall(b.dataset.t); };
+window.addEventListener("resize", fit);
+
+setSeg("armSeg", S.armMode); setSeg("devSeg", S.device); setSeg("outSeg", S.outcome);
+renderLog(); fit(); renderApp(); renderAssign();
+</script>
+<style>
+/* Brand webfonts from the Kickresume Design System, embedded (Artifact CSP blocks other font hosts) */
+/*__FONTS__*/
+</style>

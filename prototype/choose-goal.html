@@ -35,7 +35,7 @@ button { font: inherit; color: inherit; }
 .logo { width: 152px; height: 24px; display: block; }
 
 /* ---------- content ---------- */
-.wrap { width: min(1050px, 100% - 32px); margin: 100px auto 0; padding-bottom: 80px; display: flex; flex-direction: column; align-items: center; gap: 32px; }
+.wrap { width: min(1048px, 100% - 32px); margin: 100px auto 0; padding-bottom: 80px; display: flex; flex-direction: column; align-items: center; gap: 32px; }
 .intro { display: grid; gap: 8px; text-align: center; }
 .intro h1 { margin: 0; font-family: var(--kr-font-display); font-weight: 400; font-size: 48px; line-height: 56px; text-wrap: balance; }
 .intro p { margin: 0; font-size: 16px; line-height: 24px; text-wrap: balance; }
@@ -51,20 +51,20 @@ button { font: inherit; color: inherit; }
 .skip { background: none; border: 0; padding: 4px 2px; border-radius: 6px; color: var(--kr-grey-80); font-size: 16px; line-height: 24px; text-decoration: underline; text-underline-position: from-font; cursor: pointer; }
 .skip:hover { color: var(--kr-grey-100); }
 
-/* ---------- card illustrations: soft tints only; each composition sits on a 156×132 stage centred with an equal 27px margin on every side.
+/* ---------- card illustrations: soft tints only; each composition sits on a 156×156 stage centred with an equal 27px margin on every side.
    Static at rest; on hover (or keyboard focus) one or two elements ease into place and ease back. ---------- */
-.art { --ease: cubic-bezier(.22, .8, .28, 1); --dur: .5s; position: relative; height: 186px; border-radius: 12px; overflow: hidden; display: grid; place-items: center; }
+.art { --ease: cubic-bezier(.22, .8, .28, 1); --dur: .5s; position: relative; height: 210px; border-radius: 12px; overflow: hidden; display: grid; place-items: center; }
 .art.coral { background: var(--kr-primary-tint); }
 .art.blue { background: var(--kr-blue-very-light); }
 .art.mint { background: var(--kr-light-mint); }
 .art.sand { background: var(--art-sand); }
-.stage { position: relative; width: 156px; height: 132px; }
+.stage { position: relative; width: 156px; height: 156px; }
 .stage.center { display: grid; place-items: center; }
 .ln { display: block; height: 4px; border-radius: 2px; background: var(--art-line); flex: none; }
 .ln.dk { background: var(--art-line-dark); }
 .row { display: flex; align-items: center; gap: 8px; }
 .col { display: grid; gap: 4px; flex: 1; min-width: 0; }
-.paper { position: absolute; top: 0; display: flex; flex-direction: column; gap: 6.4px; width: 100px; height: 132px; padding: 12px; background: var(--kr-white); border-radius: 3px; box-shadow: var(--kr-shadow-search-cv); }
+.paper { position: absolute; top: 0; display: flex; flex-direction: column; gap: 6.4px; width: 100px; height: 156px; padding: 12px; background: var(--kr-white); border-radius: 3px; box-shadow: var(--kr-shadow-search-cv); }
 .paper .row { margin-bottom: 2px; }
 .avatar { width: 20px; height: 20px; border-radius: 50%; background: var(--art-line); flex: none; }
 .float { background: var(--kr-white); border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,.08); }
@@ -75,9 +75,9 @@ button { font: inherit; color: inherit; }
 
 /* 1 · Build: an old file behind, the new resume AI is writing in front. Hover: the line grows, the AI badge lifts */
 .art-build .paper { left: 36px; }
-.art-build .paper.old { left: 0; top: 12px; width: 84px; height: 108px; padding: 10px; gap: 6px; opacity: .6; }
+.art-build .paper.old { left: 0; top: 14px; width: 84px; height: 128px; padding: 10px; gap: 6px; opacity: .6; }
 .ln.ai { width: 20px; background: var(--art-ai); transition: width var(--dur) var(--ease); }
-.ai-badge { position: absolute; left: 126px; top: 90px; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--kr-white); box-shadow: var(--kr-shadow-dropdown); color: var(--art-ai-ink); transition: transform var(--dur) var(--ease); }
+.ai-badge { position: absolute; left: 126px; top: 112px; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--kr-white); box-shadow: var(--kr-shadow-dropdown); color: var(--art-ai-ink); transition: transform var(--dur) var(--ease); }
 .ai-badge .lucide { width: 14px; height: 14px; }
 .goal:is(:hover, :focus-visible) .ln.ai { width: 61px; }
 .goal:is(:hover, :focus-visible) .ai-badge { transform: translateY(-4px) rotate(-12deg); }
@@ -92,7 +92,7 @@ button { font: inherit; color: inherit; }
 .goal:is(:hover, :focus-visible) .ln.kw { background-color: var(--art-ai); }
 
 /* 3 · ATS: hover: the flagged issue gets fixed and the score ring fills further */
-.report { width: 156px; height: 132px; display: grid; align-content: space-between; padding: 14px; border-radius: 8px; box-shadow: var(--kr-shadow-search-cv); }
+.report { width: 156px; height: 156px; display: grid; align-content: space-between; padding: 14px; border-radius: 8px; box-shadow: var(--kr-shadow-search-cv); }
 .score { position: relative; width: 38px; height: 38px; flex: none; display: grid; place-items: center; }
 .score svg { position: absolute; inset: 0; transform: rotate(-90deg); }
 .score b { grid-area: 1 / 1; font-size: 12px; line-height: 1; font-weight: 600; transition: opacity calc(var(--dur) * .6) var(--ease); }
@@ -112,8 +112,8 @@ button { font: inherit; color: inherit; }
 .goal:is(:hover, :focus-visible) .mark.flag .fixed { opacity: 1; transform: none; }
 
 /* 4 · Find jobs: hover: the best match rises out of the list */
-.jobs { width: 156px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 9px; }
-.job { min-width: 0; display: flex; align-items: center; gap: 8px; padding: 9px; border-radius: 6px; box-shadow: 0 1px 1px rgba(0,0,0,.04); transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+.jobs { width: 156px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.job { min-width: 0; display: flex; align-items: center; gap: 8px; padding: 12px 9px; border-radius: 6px; box-shadow: 0 1px 1px rgba(0,0,0,.04); transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
 .pill.fit { background: var(--kr-light-mint); color: var(--art-ok-ink); padding: 1px 5px; }
 .goal:is(:hover, :focus-visible) .job:first-child { transform: translateY(-3px) scale(1.04); box-shadow: var(--kr-shadow-dropdown); }
 
@@ -179,12 +179,12 @@ const docHead = `<span class="row"><span class="avatar"></span><span class="col"
 /* ===== Illustrations: each one shows the outcome its card promises ===== */
 const ART = {
   build: `<div class="art coral art-build"><div class="stage">
-      <div class="paper old">${ln(40, "dk")}${ln(56)}${ln(48)}${ln(60)}${ln(36)}</div>
-      <div class="paper">${docHead}${ln(68)}${ln(53)}${ln(61)}<i class="ln ai"></i></div>
+      <div class="paper old">${ln(40, "dk")}${ln(56)}${ln(48)}${ln(60)}${ln(36)}${ln(52)}</div>
+      <div class="paper">${docHead}${ln(68)}${ln(53)}${ln(61)}${ln(45)}<i class="ln ai"></i></div>
       <span class="ai-badge">${ic("sparkles")}</span>
     </div></div>`,
   tailor: `<div class="art blue art-tailor"><div class="stage">
-      <div class="paper">${docHead}<span class="row" style="gap:3px">${ln(30)}${ln(34, "kw")}</span>${ln(53)}<span class="row" style="gap:3px">${ln(26, "kw")}${ln(34)}</span>${ln(30)}</div>
+      <div class="paper">${docHead}<span class="row" style="gap:3px">${ln(30)}${ln(34, "kw")}</span>${ln(53)}<span class="row" style="gap:3px">${ln(26, "kw")}${ln(34)}</span>${ln(30)}${ln(48)}</div>
       <div class="float job-ad">
         <span class="row" style="gap:6px"><span class="sq"></span><span class="col">${ln(44, "dk")}${ln(30)}</span></span>
         ${ln(66)}${ln(52)}
@@ -200,6 +200,7 @@ const ART = {
         <hr>
         <div class="chk">
           <span class="row" style="gap:7px"><span class="mark">${ic("check")}</span>${ln(78)}</span>
+          <span class="row" style="gap:7px"><span class="mark">${ic("check")}</span>${ln(64)}</span>
           <span class="row" style="gap:7px"><span class="mark flag">${ic("alert", "issue")}${ic("check", "fixed")}</span>${ln(56)}</span>
         </div>
       </div>

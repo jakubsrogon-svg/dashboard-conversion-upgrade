@@ -1,4 +1,4 @@
-"""Build paywall-v2.html from src/ by inlining Kickresume Design System fonts + logos.
+"""Build each src/<page>.src.html into <page>.html by inlining Kickresume Design System fonts + logos.
 
 Usage: python3 build.py <path-to-unzipped-Kickresume_Design_System>
 """
@@ -6,7 +6,6 @@ import base64, pathlib, re, sys
 
 ds = pathlib.Path(sys.argv[1])
 here = pathlib.Path(__file__).parent
-src = (here / "src/paywall-v2.src.html").read_text()
 
 def svg(path, cls):
     s = (ds / path).read_text().strip()
@@ -29,9 +28,12 @@ css = "\n".join(
     f'@font-face{{font-family:"{fam}";src:url(data:{mime[fmt]};base64,{base64.b64encode((ds / "fonts" / f).read_bytes()).decode()}) format("{fmt}");font-weight:{w};font-style:{st};font-display:swap}}'
     for fam, f, fmt, w, st in faces
 )
-out = (src.replace("/*__FONTS__*/", css)
-          .replace("__LOGO_SYM__", svg("assets/logos/kickresume-symbol-red.svg", "logo-sym"))
-          .replace("__LOGO__", svg("assets/logos/kickresume-wordmark-default.svg", "logo")))
-assert "`" not in out.split("const LOGO = `")[1].split("`;")[0]
-(here / "paywall-v2.html").write_text(out)
-print("wrote", len(out) // 1024, "KB")
+for page in sorted((here / "src").glob("*.src.html")):
+    out = (page.read_text().replace("/*__FONTS__*/", css)
+              .replace("__LOGO_SYM__", svg("assets/logos/kickresume-symbol-red.svg", "logo-sym"))
+              .replace("__LOGO__", svg("assets/logos/kickresume-wordmark-default.svg", "logo")))
+    if "const LOGO = `" in out:
+        assert "`" not in out.split("const LOGO = `")[1].split("`;")[0]
+    dest = here / page.name.replace(".src.html", ".html")
+    dest.write_text(out)
+    print("wrote", dest.name, len(out) // 1024, "KB")

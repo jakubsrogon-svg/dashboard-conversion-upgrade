@@ -1,0 +1,224 @@
+<title>Create Your Resume</title>
+<style>
+/* "How do you want to create your resume?" — Figma: Kickresume 3.0 › LinkedIn / Expanded (node 61603:237577).
+   Four start options in a 500px column; LinkedIn import expands inline, the other options dim to 50% while it is open.
+   Styling follows the Kickresume Design System: Henk-Work H1, Graphik Web UI, coral CTA (Coral/Inactive while the URL is empty),
+   six-tone greys, Dropdown shadow on the open card, Lucide icons. Kickresume is light-only, so every color is set explicitly. */
+:root {
+  color-scheme: light;
+  /* ---- Kickresume Design System tokens (verbatim) ---- */
+  --kr-primary: #ff5e59; --kr-primary-hover: #ff736e; --kr-primary-active: #cd2927; --kr-primary-light: #f8aca7; --kr-primary-tint: #fff4f3;
+  --kr-blue: #514eea; --kr-blue-very-light: #f3f2fd; --kr-blue-dark: #081430;
+  --kr-grey-100: #3f3f3f; --kr-grey-80: #8c8c8c; --kr-grey-60: #e9e9e9; --kr-grey-40: #f2f2f2; --kr-white: #fff; --kr-background: #f4f7f8;
+  --kr-green-mint: #1da36e;
+  --kr-font-sans: "Graphik Web", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --kr-font-display: "Henk-Work", "Graphik Web", Georgia, serif;
+  --kr-radius-btn: 10px; --kr-radius-md: 16px;
+  --kr-shadow-dropdown: 1px 2px 10px 0 rgba(0,0,0,.1);
+  --kr-focus-ring: 0 0 0 3px rgba(63,63,63,.35);
+}
+* { box-sizing: border-box; }
+html { background: var(--kr-white); }
+body { margin: 0; min-height: 100vh; background: linear-gradient(180deg, var(--kr-background) 49.519%, var(--kr-white) 100%); color: var(--kr-grey-100); font-family: var(--kr-font-sans); font-size: 14px; line-height: 20px; -webkit-font-smoothing: antialiased; }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: none; box-shadow: var(--kr-focus-ring); }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+.lucide { width: 20px; height: 20px; flex: none; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---------- top bar ---------- */
+.top { height: 64px; display: flex; align-items: center; padding: 12px 32px 12px 25px; }
+.top a { display: flex; border-radius: 4px; }
+.logo { width: 152px; height: 24px; display: block; }
+
+/* ---------- content ---------- */
+.wrap { width: min(1100px, 100% - 32px); margin: 80px auto 0; padding-bottom: 80px; display: flex; flex-direction: column; align-items: center; gap: 40px; }
+.intro { display: grid; gap: 16px; text-align: center; }
+.intro h1 { margin: 0; font-family: var(--kr-font-display); font-weight: 400; font-size: 48px; line-height: 56px; text-wrap: balance; }
+.intro p { margin: 0; font-size: 16px; line-height: 24px; }
+
+/* ---------- options ---------- */
+.opts { width: min(500px, 100%); display: grid; gap: 8px; }
+.opt { background: var(--kr-white); border-radius: var(--kr-radius-md); transition: opacity .2s, box-shadow .2s; }
+.opt:hover, .opt.open { box-shadow: var(--kr-shadow-dropdown); }
+.opts.has-open .opt:not(.open) { opacity: .5; }
+.opts.has-open .opt:not(.open):hover { opacity: .8; }
+.opt-head { width: 100%; display: flex; align-items: center; gap: 16px; padding: 16px; background: none; border: 0; border-radius: inherit; text-align: left; cursor: pointer; }
+.tile { width: 48px; height: 48px; border-radius: var(--kr-radius-btn); display: grid; place-items: center; flex: none; }
+.tile .lucide { width: 24px; height: 24px; }
+.tile.blue { background: var(--kr-blue-very-light); color: var(--kr-blue); }
+.tile.premium { background: var(--kr-blue-very-light); }
+.tile.premium .lucide { stroke: url(#kr-premium); }
+.tile.coral { background: var(--kr-primary-tint); color: var(--kr-primary); }
+.tile.mint { background: rgba(29,163,110,.07); color: var(--kr-green-mint); }
+.opt-txt { flex: 1; min-width: 0; display: grid; gap: 4px; }
+.opt-title { font-size: 18px; line-height: 24px; font-weight: 500; }
+.opt-sub { font-size: 14px; line-height: 20px; color: var(--kr-grey-80); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chev { transition: transform .2s; }
+.opt.open .chev { transform: rotate(90deg); }
+
+/* LinkedIn import panel */
+.opt-body { padding: 8px 16px 16px; display: grid; gap: 8px; }
+.opt-body[hidden] { display: none; }
+.opt-body > p { margin: 0; }
+.field { display: flex; align-items: center; gap: 8px; background: var(--kr-white); border: 1px solid var(--kr-grey-60); border-radius: var(--kr-radius-btn); padding: 0 10px 0 16px; transition: border-color .2s; }
+.field:focus-within { border-color: var(--kr-blue); }
+.field.err { border-color: var(--kr-primary); }
+.field input { flex: 1; min-width: 0; border: 0; padding: 11px 0; background: transparent; font-size: 16px; line-height: 24px; outline: none; box-shadow: none; }
+.field input::placeholder { color: var(--kr-grey-80); opacity: 1; }
+.paste { width: 32px; height: 32px; flex: none; display: grid; place-items: center; border: 0; border-radius: 6px; background: transparent; color: var(--kr-grey-100); cursor: pointer; }
+.paste:hover { background: var(--kr-grey-40); }
+.err-msg { margin: 0; color: var(--kr-primary); }
+.err-msg[hidden] { display: none; }
+.actions { display: flex; justify-content: flex-end; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 104px; padding: 10px 32px; border: 0; border-radius: var(--kr-radius-btn); background: var(--kr-primary); color: var(--kr-white); font-size: 14px; line-height: 20px; font-weight: 500; cursor: pointer; transition: background .2s; }
+.btn:hover { background: var(--kr-primary-hover); }
+.btn:active { background: var(--kr-primary-active); }
+.btn:disabled { background: var(--kr-primary-light); cursor: not-allowed; }
+.btn.busy { background: var(--kr-primary-light); cursor: progress; }
+.spin { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255,255,255,.45); border-top-color: #fff; animation: rot .7s linear infinite; }
+@keyframes rot { to { transform: rotate(360deg); } }
+
+.skip { background: none; border: 0; padding: 0; border-radius: 4px; color: var(--kr-grey-80); font-size: 16px; line-height: 24px; text-decoration: underline; text-underline-position: from-font; cursor: pointer; }
+.skip:hover { color: var(--kr-grey-100); }
+
+/* prototype feedback: where a click would lead */
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 12px); max-width: calc(100% - 32px); background: var(--kr-blue-dark); color: var(--kr-white); padding: 10px 16px; border-radius: var(--kr-radius-btn); box-shadow: var(--kr-shadow-dropdown); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; }
+.toast.on { opacity: 1; transform: translate(-50%, 0); }
+
+@media (max-width: 600px) {
+  .top { padding: 12px 16px; }
+  .wrap { margin-top: 40px; gap: 32px; padding-bottom: 48px; }
+  .intro h1 { font-size: 32px; line-height: 40px; }
+}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs><linearGradient id="kr-premium" gradientUnits="userSpaceOnUse" x1="24" y1="24" x2="0" y2="0"><stop offset="0" stop-color="#a066ff"/><stop offset="1" stop-color="#666cff"/></linearGradient></defs>
+</svg>
+
+<header class="top"><a href="#" aria-label="Kickresume home">__LOGO__</a></header>
+
+<main class="wrap">
+  <div class="intro">
+    <h1>How do you want to create your resume?</h1>
+    <p>We'll fill in your details — you review and edit.</p>
+  </div>
+  <div class="opts" id="opts"></div>
+  <button class="skip" id="skip" type="button">Skip personalization</button>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ===== Icons: Lucide (DS default set, 2px stroke, currentColor) ===== */
+const LUCIDE = {
+  linkedin: '<path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/>',
+  sparkles: '<path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/>',
+  upload: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/>',
+  clipboardPaste: '<path d="M11 14h10"/><path d="M16 4h2a2 2 0 0 1 2 2v1.344"/><path d="m17 18 4-4-4-4"/><path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 1.793-1.113"/><rect x="8" y="2" width="8" height="4" rx="1"/>',
+  clipboard: '<rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>',
+  chevronRight: '<path d="m9 18 6-6-6-6"/>',
+};
+const ic = (n, cls = "") => `<svg class="lucide ${cls}" viewBox="0 0 24 24" aria-hidden="true">${LUCIDE[n]}</svg>`;
+
+const OPTIONS = [
+  { id: "linkedin", title: "Import from LinkedIn", sub: "Paste your profile link", icon: "linkedin", tone: "blue", expands: true },
+  { id: "ai",       title: "Write with AI",        sub: "Answer a few questions",  icon: "sparkles", tone: "premium", next: "the AI questions" },
+  { id: "upload",   title: "Upload a resume",      sub: "PDF or Word",             icon: "upload", tone: "coral", next: "the PDF / Word upload" },
+  { id: "paste",    title: "Paste text",           sub: "Any text you have",       icon: "clipboardPaste", tone: "mint", next: "the paste-text step" },
+];
+// linkedin.com/in/<handle>, with or without protocol / www / country subdomain
+const LINKEDIN_RE = /^(https?:\/\/)?([a-z]{2,3}\.)?linkedin\.com\/in\/([\w\-%]{3,100})\/?([?#].*)?$/i;
+
+const S = { open: "linkedin", url: "", touched: false, busy: false };
+const valid = () => LINKEDIN_RE.test(S.url.trim());
+
+const opts = document.getElementById("opts");
+function render() {
+  opts.classList.toggle("has-open", !!S.open);
+  opts.innerHTML = OPTIONS.map(o => {
+    const open = S.open === o.id;
+    return `<div class="opt ${open ? "open" : ""}">
+      <button class="opt-head" type="button" data-id="${o.id}" ${o.expands ? `aria-expanded="${open}" aria-controls="body-${o.id}"` : ""}>
+        <span class="tile ${o.tone}">${ic(o.icon)}</span>
+        <span class="opt-txt"><span class="opt-title">${o.title}</span><span class="opt-sub">${o.sub}</span></span>
+        ${ic("chevronRight", "chev")}
+      </button>
+      ${o.expands ? `<div class="opt-body" id="body-${o.id}" ${open ? "" : "hidden"}>
+        <p id="li-hint">Paste your profile URL and we’ll build a resume from it.</p>
+        <div class="field" id="li-field">
+          <input id="li-url" type="url" inputmode="url" autocomplete="url" spellcheck="false" placeholder="linkedin.com/in/" aria-label="LinkedIn profile URL" aria-describedby="li-hint li-err">
+          <button class="paste" id="li-paste" type="button" aria-label="Paste from clipboard">${ic("clipboard")}</button>
+        </div>
+        <p class="err-msg" id="li-err" hidden>Enter a LinkedIn profile link, like linkedin.com/in/your-name</p>
+        <div class="actions"><button class="btn" id="li-import" type="button">Import</button></div>
+      </div>` : ""}
+    </div>`;
+  }).join("");
+  const input = document.getElementById("li-url");
+  input.value = S.url;
+  syncLinkedIn();
+}
+
+function syncLinkedIn() {
+  const ok = valid(), showErr = S.touched && S.url.trim() !== "" && !ok;
+  document.getElementById("li-field").classList.toggle("err", showErr);
+  document.getElementById("li-err").hidden = !showErr;
+  document.getElementById("li-url").setAttribute("aria-invalid", showErr);
+  const btn = document.getElementById("li-import");
+  btn.disabled = !ok && !S.busy;
+  btn.classList.toggle("busy", S.busy);
+  btn.innerHTML = S.busy ? `<span class="spin" aria-hidden="true"></span>Importing…` : "Import";
+}
+
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg; el.classList.add("on");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove("on"), 2600);
+}
+
+function importProfile() {
+  if (!valid() || S.busy) return;
+  S.busy = true; syncLinkedIn();
+  const handle = S.url.trim().match(LINKEDIN_RE)[3];
+  setTimeout(() => { S.busy = false; syncLinkedIn(); toast(`Imported ${decodeURIComponent(handle)} — next: review your details in the editor.`); }, 1400);
+}
+
+opts.addEventListener("click", async e => {
+  const head = e.target.closest(".opt-head");
+  if (head) {
+    const o = OPTIONS.find(x => x.id === head.dataset.id);
+    if (o.expands) {
+      S.open = S.open === o.id ? null : o.id;
+      render();
+      document.querySelector(`[data-id="${o.id}"]`).focus();
+      if (S.open) document.getElementById("li-url").focus();
+    } else toast(`Continues to ${o.next}.`);
+    return;
+  }
+  if (e.target.closest("#li-paste")) {
+    const input = document.getElementById("li-url");
+    try {
+      const text = (await navigator.clipboard.readText()).trim();
+      if (text) { S.url = input.value = text; S.touched = true; syncLinkedIn(); }
+      input.focus();
+    } catch {
+      input.focus();
+      toast("Clipboard access is blocked here — press Ctrl+V / ⌘V to paste.");
+    }
+    return;
+  }
+  if (e.target.closest("#li-import")) importProfile();
+});
+opts.addEventListener("input", e => { if (e.target.id === "li-url") { S.url = e.target.value; syncLinkedIn(); } });
+opts.addEventListener("focusout", e => { if (e.target.id === "li-url") { S.touched = true; syncLinkedIn(); } });
+opts.addEventListener("keydown", e => { if (e.target.id === "li-url" && e.key === "Enter") { S.touched = true; syncLinkedIn(); importProfile(); } });
+document.getElementById("skip").onclick = () => toast("Skips straight to an empty resume.");
+document.querySelector(".top a").onclick = e => e.preventDefault();
+
+render();
+</script>
+<style>
+/* Brand webfonts from the Kickresume Design System, embedded (Artifact CSP blocks other font hosts) */
+/*__FONTS__*/
+</style>

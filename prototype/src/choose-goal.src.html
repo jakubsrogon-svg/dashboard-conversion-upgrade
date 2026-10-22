@@ -17,11 +17,16 @@
   --kr-shadow-search-cv: 0 8px 20px 0 rgba(140,140,140,.18);
   --kr-focus-ring: 0 0 0 3px rgba(63,63,63,.35);
   /* illustration-only greys and the job-search tint used in the Figma frame */
-  --art-line: #e9e9e9; --art-line-dark: #cfcfcf; --art-sand: #fbefda;
-  /* illustration backgrounds one step deeper on hover */
-  --art-coral-hover: #ffe6e4; --art-blue-hover: #e7e6fc; --art-mint-hover: #dcf1e8; --art-sand-hover: #f8e4c2;
-  /* soft illustration accents: tints of Royal Blue, Green/Mint (#1da36e) and Yellow (#ffc107) instead of the full-strength colours */
-  --art-ai: #d6d5fa; --art-ai-ink: #8583f0; --art-ok: #8fd6b8; --art-ok-ink: #3fb487; --art-warn: #fff1c4; --art-warn-ink: #d9a100;
+  /* Design System colours only (Figma library styles in comments); softer shades are those colours at reduced opacity, as the design file does */
+  --kr-blue-light: #9795f2;   /* Royal Blue/Inactive */
+  --kr-green-mint: #1da36e;   /* Green/Mint */
+  --kr-yellow: #ffc107;       /* Yellow/Star */
+  --kr-beige: #fbefda;        /* Beige / Primary */
+  --art-line: var(--kr-grey-60);
+  --art-line-dark: color-mix(in srgb, var(--kr-grey-80) 40%, transparent);
+  --art-ai: color-mix(in srgb, var(--kr-blue-light) 50%, transparent); --art-ai-ink: var(--kr-blue-light);
+  --art-ok: color-mix(in srgb, var(--kr-green-mint) 50%, transparent); --art-ok-ink: var(--kr-green-mint);
+  --art-warn: color-mix(in srgb, var(--kr-yellow) 20%, transparent); --art-warn-ink: var(--kr-yellow);
 }
 * { box-sizing: border-box; }
 html { background: var(--kr-white); }
@@ -55,15 +60,14 @@ button { font: inherit; color: inherit; }
 
 /* ---------- card illustrations: soft tints only; each composition sits on a 156×156 stage centred with an equal 27px margin on every side.
    Static at rest; on hover (or keyboard focus) one or two elements ease into place and ease back. ---------- */
-.art { --ease: cubic-bezier(.22, .8, .28, 1); --dur: .5s; position: relative; height: 210px; border-radius: 12px; overflow: hidden; display: grid; place-items: center; transition: background-color var(--dur) var(--ease); }
-.art.coral { background: var(--kr-primary-tint); }
-.art.blue { background: var(--kr-blue-very-light); }
-.art.mint { background: var(--kr-light-mint); }
-.art.sand { background: var(--art-sand); }
-.goal:is(:hover, :focus-visible) .art.coral { background: var(--art-coral-hover); }
-.goal:is(:hover, :focus-visible) .art.blue { background: var(--art-blue-hover); }
-.goal:is(:hover, :focus-visible) .art.mint { background: var(--art-mint-hover); }
-.goal:is(:hover, :focus-visible) .art.sand { background: var(--art-sand-hover); }
+.art { --ease: cubic-bezier(.22, .8, .28, 1); --dur: .5s; position: relative; height: 210px; border-radius: 12px; overflow: hidden; display: grid; place-items: center; }
+.art.coral { background: var(--kr-primary-tint); --tint: var(--kr-primary); --tint-o: .08; }
+.art.blue { background: var(--kr-blue-very-light); --tint: var(--kr-blue); --tint-o: .06; }
+.art.mint { background: var(--kr-light-mint); --tint: var(--kr-green-mint); --tint-o: .08; }
+.art.sand { background: var(--kr-beige); --tint: var(--kr-yellow); --tint-o: .12; }
+/* hover: the card's base colour fades in over its tint, so the background deepens without a new colour */
+.art::before { content: ""; position: absolute; inset: 0; background: var(--tint); opacity: 0; transition: opacity var(--dur) var(--ease); }
+.goal:is(:hover, :focus-visible) .art::before { opacity: var(--tint-o); }
 .stage { position: relative; width: 156px; height: 156px; }
 .stage.center { display: grid; place-items: center; }
 .ln { display: block; height: 4px; border-radius: 2px; background: var(--art-line); flex: none; }

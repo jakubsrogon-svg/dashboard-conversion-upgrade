@@ -64,8 +64,9 @@ button { font: inherit; color: inherit; }
 .ln.dk { background: var(--art-line-dark); }
 .row { display: flex; align-items: center; gap: 8px; }
 .col { display: grid; gap: 4px; flex: 1; min-width: 0; }
-.paper { position: absolute; top: 0; display: flex; flex-direction: column; gap: 6.4px; width: 100px; height: 156px; padding: 12px; background: var(--kr-white); border-radius: 3px; box-shadow: var(--kr-shadow-search-cv); }
+.paper { position: absolute; top: 0; display: flex; flex-direction: column; gap: 6.4px; width: 120px; height: 156px; padding: 12px; background: var(--kr-white); border-radius: 3px; box-shadow: var(--kr-shadow-search-cv); }
 .paper .row { margin-bottom: 2px; }
+.paper .sec { margin-top: 4px; }
 .avatar { width: 20px; height: 20px; border-radius: 50%; background: var(--art-line); flex: none; }
 .float { background: var(--kr-white); border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,.08); }
 .tiny { font-size: 9px; line-height: 12px; font-weight: 500; letter-spacing: .06px; white-space: nowrap; }
@@ -74,12 +75,12 @@ button { font: inherit; color: inherit; }
 .sq { width: 20px; height: 20px; border-radius: 4px; flex: none; }
 
 /* 1 · Build: an old file behind, the new resume AI is writing in front. Hover: the line grows, the AI badge lifts */
-.art-build .paper { left: 36px; }
-.art-build .paper.old { left: 0; top: 14px; width: 84px; height: 128px; padding: 10px; gap: 6px; opacity: .6; }
+.art-build .paper { left: 26px; }
+.art-build .paper.old { left: 0; top: 16px; width: 96px; height: 124px; padding: 10px; gap: 6px; opacity: .6; }
 .ln.ai { width: 20px; background: var(--art-ai); transition: width var(--dur) var(--ease); }
 .ai-badge { position: absolute; left: 126px; top: 112px; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--kr-white); box-shadow: var(--kr-shadow-dropdown); color: var(--art-ai-ink); transition: transform var(--dur) var(--ease); }
 .ai-badge .lucide { width: 14px; height: 14px; }
-.goal:is(:hover, :focus-visible) .ln.ai { width: 61px; }
+.goal:is(:hover, :focus-visible) .ln.ai { width: 74px; }
 .goal:is(:hover, :focus-visible) .ai-badge { transform: translateY(-4px) rotate(-12deg); }
 
 /* 2 · Tailor: hover: the job ad slides onto the resume and its keywords light up */
@@ -174,17 +175,17 @@ const LUCIDE = {
 };
 const ic = (n, cls = "") => `<svg class="lucide ${cls}" viewBox="0 0 24 24" aria-hidden="true">${LUCIDE[n]}</svg>`;
 const ln = (w, cls = "") => `<i class="ln ${cls}" style="width:${w}px"></i>`;
-const docHead = `<span class="row"><span class="avatar"></span><span class="col">${ln(38, "dk")}${ln(24)}</span></span>`;
+const docHead = `<span class="row"><span class="avatar"></span><span class="col">${ln(46, "dk")}${ln(28)}</span></span>`;
 
 /* ===== Illustrations: each one shows the outcome its card promises ===== */
 const ART = {
   build: `<div class="art coral art-build"><div class="stage">
-      <div class="paper old">${ln(40, "dk")}${ln(56)}${ln(48)}${ln(60)}${ln(36)}${ln(52)}</div>
-      <div class="paper">${docHead}${ln(68)}${ln(53)}${ln(61)}${ln(45)}<i class="ln ai"></i></div>
+      <div class="paper old">${ln(44, "dk")}${ln(66)}${ln(56)}${ln(70)}${ln(30, "dk sec")}${ln(62)}${ln(48)}</div>
+      <div class="paper">${docHead}${ln(82)}${ln(64)}${ln(74)}${ln(34, "dk sec")}${ln(78)}${ln(56)}<i class="ln ai"></i></div>
       <span class="ai-badge">${ic("sparkles")}</span>
     </div></div>`,
   tailor: `<div class="art blue art-tailor"><div class="stage">
-      <div class="paper">${docHead}<span class="row" style="gap:3px">${ln(30)}${ln(34, "kw")}</span>${ln(53)}<span class="row" style="gap:3px">${ln(26, "kw")}${ln(34)}</span>${ln(30)}${ln(48)}</div>
+      <div class="paper">${docHead}<span class="row" style="gap:3px">${ln(36)}${ln(40, "kw")}</span>${ln(64)}<span class="row" style="gap:3px">${ln(30, "kw")}${ln(42)}</span>${ln(34, "dk sec")}${ln(70)}${ln(52)}</div>
       <div class="float job-ad">
         <span class="row" style="gap:6px"><span class="sq"></span><span class="col">${ln(44, "dk")}${ln(30)}</span></span>
         ${ln(66)}${ln(52)}

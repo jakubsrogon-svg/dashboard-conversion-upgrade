@@ -130,6 +130,12 @@ button { font: inherit; color: inherit; }
   .wrap { margin-top: 40px; gap: 24px; padding-bottom: 48px; }
   .intro h1 { font-size: 32px; line-height: 40px; }
   .goals { grid-template-columns: 1fr; gap: 12px; }
+  /* mobile: horizontal card, 96px thumbnail on the left; the 156px stage scales to 72px so the 12px margin stays equal on every side */
+  .goal { flex-direction: row; align-items: center; gap: 20px; padding: 12px; }
+  .goal > [aria-hidden] { flex: none; }
+  .art { width: 96px; height: 96px; display: block; }
+  .stage { position: absolute; left: 12px; top: 12px; transform: scale(calc(72 / 156)); transform-origin: 0 0; }
+  .goal-txt { padding: 0; }
 }
 </style>
 

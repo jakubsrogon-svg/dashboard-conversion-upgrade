@@ -1,0 +1,236 @@
+<title>Choose Your Goal</title>
+<style>
+/* "What do you want to get done first?" — Figma: Kickresume 3.0 › Intent collection (node 61096:3947).
+   Four goal cards, all available: Build, Tailor, ATS check, Find jobs. Copy is task-first ("Build my resume") with the benefit in the description;
+   each card's illustration shows the outcome its text promises. Kickresume Design System tokens, Henk-Work H1, Graphik Web UI, Lucide icons. */
+:root {
+  color-scheme: light;
+  /* ---- Kickresume Design System tokens (verbatim) ---- */
+  --kr-primary: #ff5e59; --kr-primary-tint: #fff4f3;
+  --kr-blue: #514eea; --kr-blue-very-light: #f3f2fd; --kr-blue-dark: #081430;
+  --kr-grey-100: #3f3f3f; --kr-grey-80: #8c8c8c; --kr-grey-60: #e9e9e9; --kr-grey-40: #f2f2f2; --kr-white: #fff; --kr-background: #f4f7f8;
+  --kr-green-mint: #1da36e; --kr-light-mint: #edf8f4; --kr-yellow: #ffc107;
+  --kr-premium-gradient: linear-gradient(315deg, #a066ff 0%, #666cff 100%);
+  --kr-font-sans: "Graphik Web", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --kr-font-display: "Henk-Work", "Graphik Web", Georgia, serif;
+  --kr-radius-btn: 10px; --kr-radius-md: 16px;
+  --kr-shadow-dropdown: 1px 2px 10px 0 rgba(0,0,0,.1);
+  --kr-shadow-search-cv: 0 8px 20px 0 rgba(140,140,140,.18);
+  --kr-shadow-premium-light: 1px 2px 6px 0 rgba(160,102,255,.3), 1px 2px 16px 0 rgba(102,108,255,.3);
+  --kr-focus-ring: 0 0 0 3px rgba(63,63,63,.35);
+  /* illustration-only greys and the job-search tint used in the Figma frame */
+  --art-line: #e9e9e9; --art-line-dark: #cfcfcf; --art-sand: #fbefda;
+}
+* { box-sizing: border-box; }
+html { background: var(--kr-white); }
+body { margin: 0; min-height: 100vh; background: linear-gradient(180deg, var(--kr-background) 49.519%, var(--kr-white) 100%); color: var(--kr-grey-100); font-family: var(--kr-font-sans); font-size: 14px; line-height: 20px; -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: none; box-shadow: var(--kr-focus-ring); }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+.lucide { width: 20px; height: 20px; flex: none; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---------- top bar ---------- */
+.top { height: 64px; display: flex; align-items: center; padding: 12px 32px 12px 25px; }
+.top a { display: flex; border-radius: 4px; }
+.logo { width: 152px; height: 24px; display: block; }
+
+/* ---------- content ---------- */
+.wrap { width: min(1050px, 100% - 32px); margin: 100px auto 0; padding-bottom: 80px; display: flex; flex-direction: column; align-items: center; gap: 32px; }
+.intro { display: grid; gap: 8px; text-align: center; }
+.intro h1 { margin: 0; font-family: var(--kr-font-display); font-weight: 400; font-size: 48px; line-height: 56px; text-wrap: balance; }
+.intro p { margin: 0; font-size: 16px; line-height: 24px; text-wrap: balance; }
+
+.goals { width: 100%; margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+.goal { height: 100%; display: flex; flex-direction: column; gap: 16px; padding: 16px; background: var(--kr-white); border: 1px solid var(--kr-grey-60); border-radius: var(--kr-radius-md); color: inherit; text-decoration: none; text-align: left; cursor: pointer; transition: box-shadow .2s, transform .2s, border-color .2s; }
+.goal:hover { box-shadow: var(--kr-shadow-dropdown); transform: translateY(-2px); }
+.goal:focus-visible { box-shadow: var(--kr-focus-ring); }
+.goal-txt { display: grid; gap: 4px; padding: 0 4px; }
+.goal-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 18px; line-height: 24px; font-weight: 500; }
+.goal-title .lucide { width: 18px; height: 18px; color: var(--kr-grey-80); transition: transform .2s, color .2s; }
+.goal:hover .goal-title .lucide { transform: translateX(3px); color: var(--kr-grey-100); }
+.goal-desc { font-size: 14px; line-height: 20px; }
+
+.skip { background: none; border: 0; padding: 4px 2px; border-radius: 6px; color: var(--kr-grey-80); font-size: 16px; line-height: 24px; text-decoration: underline; text-underline-position: from-font; cursor: pointer; }
+.skip:hover { color: var(--kr-grey-100); }
+
+/* ---------- card illustrations (decorative mini-UI) ---------- */
+.art { position: relative; height: 200px; border-radius: 12px; overflow: hidden; }
+.art.coral { background: var(--kr-primary-tint); }
+.art.blue { background: var(--kr-blue-very-light); }
+.art.mint { background: var(--kr-light-mint); }
+.art.sand { background: var(--art-sand); }
+.ln { display: block; height: 4px; border-radius: 2px; background: var(--art-line); flex: none; }
+.ln.dk { background: var(--art-line-dark); }
+.row { display: flex; align-items: center; gap: 8px; }
+.col { display: grid; gap: 4px; flex: 1; min-width: 0; }
+.paper { position: absolute; display: flex; flex-direction: column; gap: 6.4px; width: 100px; height: 132px; padding: 12px; background: var(--kr-white); border-radius: 3px; box-shadow: var(--kr-shadow-search-cv); }
+.paper .row { margin-bottom: 2px; }
+.avatar { width: 20px; height: 20px; border-radius: 50%; background: var(--art-line); flex: none; }
+.float { position: absolute; background: var(--kr-white); border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,.1); }
+.tiny { font-size: 9px; line-height: 12px; font-weight: 500; letter-spacing: .06px; white-space: nowrap; }
+.pill { display: inline-flex; align-items: center; gap: 3px; padding: 1px 6px; border-radius: 999px; }
+.pill .lucide { width: 9px; height: 9px; stroke-width: 3; }
+.glyph { display: grid; place-items: center; flex: none; border-radius: 4px; }
+.glyph .lucide { width: 11px; height: 11px; }
+
+/* 1 · Build: import sources feed a resume that AI is writing */
+.art-build .paper { left: calc(50% - 50px); top: 34px; }
+.ln.ai { background: var(--kr-premium-gradient); animation: write 3.2s ease-in-out infinite; }
+@keyframes write { 0% { width: 0; } 55%, 100% { width: 61px; } }
+.ai-badge { position: absolute; left: calc(50% + 28px); top: 136px; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--kr-premium-gradient); box-shadow: var(--kr-shadow-premium-light); color: #fff; transition: transform .2s; }
+.ai-badge .lucide { width: 14px; height: 14px; }
+.goal:hover .ai-badge { transform: scale(1.08) rotate(-8deg); }
+.src { display: flex; align-items: center; gap: 5px; padding: 5px 8px 5px 5px; }
+.src.li { left: calc(50% - 92px); top: 52px; }
+.src.file { left: calc(50% - 84px); top: 112px; }
+.src .glyph { width: 16px; height: 16px; }
+
+/* 2 · Tailor: resume keywords light up to match a job ad */
+.art-tailor .paper { left: calc(50% - 79px); top: 34px; }
+.ln.kw { background: #c9c8f8; }
+.job-ad { right: calc(50% - 89px); bottom: 32px; width: 92px; display: grid; gap: 5px; padding: 9px; transition: transform .2s; }
+.goal:hover .job-ad { transform: translateY(-3px); }
+.job-ad .glyph { width: 16px; height: 16px; background: var(--kr-blue-very-light); color: var(--kr-blue); }
+.pill.match { justify-self: start; margin-top: 2px; background: var(--kr-blue-very-light); color: var(--kr-blue); }
+
+/* 3 · ATS: score and the fixes that raise it */
+.report { left: calc(50% - 78px); top: 30px; width: 156px; display: grid; gap: 9px; padding: 11px; border-radius: 8px; box-shadow: var(--kr-shadow-search-cv); }
+.score { position: relative; width: 38px; height: 38px; flex: none; display: grid; place-items: center; }
+.score svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+.score b { font-size: 12px; line-height: 1; font-weight: 600; }
+.score-arc { stroke-dasharray: 100; stroke-dashoffset: 14; transition: stroke-dashoffset .6s ease; }
+.goal:hover .score-arc { stroke-dashoffset: 6; }
+.report hr { margin: 0; border: 0; height: 1px; background: var(--kr-grey-40); }
+.chk { display: grid; gap: 7px; }
+.mark { width: 14px; height: 14px; border-radius: 50%; display: grid; place-items: center; flex: none; }
+.mark .lucide { width: 8px; height: 8px; stroke-width: 3.5; }
+.mark.ok { background: var(--kr-light-mint); color: var(--kr-green-mint); }
+.mark.fix { background: var(--kr-yellow); color: var(--kr-white); }
+.pill.fixit { background: #fff6dc; color: #9a6b00; padding: 0 5px; }
+
+/* 4 · Find jobs: roles ranked by fit */
+.jobs { position: absolute; left: calc(50% - 78px); top: 37px; width: 156px; display: grid; gap: 7px; }
+.job { position: relative; display: flex; align-items: center; gap: 7px; padding: 7px; border-radius: 6px; box-shadow: 0 1px 1px rgba(0,0,0,.04); transition: transform .2s; }
+.job:first-child { box-shadow: var(--kr-shadow-dropdown); transform: scale(1.04); }
+.goal:hover .job:first-child { transform: scale(1.07); }
+.job .glyph { width: 20px; height: 20px; }
+.pill.fit { background: var(--kr-light-mint); color: var(--kr-green-mint); padding: 1px 5px; }
+.job:not(:first-child) .pill.fit { background: var(--kr-grey-40); color: var(--kr-grey-80); }
+
+/* prototype feedback: where a click would lead */
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 12px); max-width: calc(100% - 32px); background: var(--kr-blue-dark); color: var(--kr-white); padding: 10px 16px; border-radius: var(--kr-radius-btn); box-shadow: var(--kr-shadow-dropdown); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; }
+.toast.on { opacity: 1; transform: translate(-50%, 0); }
+
+@media (max-width: 1100px) {
+  .goals { grid-template-columns: repeat(2, 1fr); max-width: 560px; }
+}
+@media (max-width: 600px) {
+  .top { padding: 12px 16px; }
+  .wrap { margin-top: 40px; gap: 24px; padding-bottom: 48px; }
+  .intro h1 { font-size: 32px; line-height: 40px; }
+  .goals { grid-template-columns: 1fr; gap: 12px; }
+}
+</style>
+
+<header class="top"><a href="#" aria-label="Kickresume home">__LOGO__</a></header>
+
+<main class="wrap">
+  <div class="intro">
+    <h1>What do you want to get done first?</h1>
+    <p>Pick a goal to start with. All four tools are yours, so you can switch anytime.</p>
+  </div>
+  <ul class="goals" id="goals"></ul>
+  <button class="skip" id="skip" type="button">Skip for now</button>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ===== Icons: Lucide (DS default set, 2px stroke, currentColor) ===== */
+const LUCIDE = {
+  arrowRight: '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+  sparkles: '<path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/>',
+  linkedin: '<path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/>',
+  fileText: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>',
+  briefcase: '<path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  alert: '<path d="M12 5v8"/><path d="M12 19h.01"/>',
+  building: '<rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/>',
+  rocket: '<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>',
+  heart: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
+};
+const ic = (n, cls = "") => `<svg class="lucide ${cls}" viewBox="0 0 24 24" aria-hidden="true">${LUCIDE[n]}</svg>`;
+const ln = (w, cls = "") => `<i class="ln ${cls}" style="width:${w}px"></i>`;
+const docHead = `<span class="row"><span class="avatar"></span><span class="col">${ln(38, "dk")}${ln(24)}</span></span>`;
+
+/* ===== Illustrations: each one shows the outcome its card promises ===== */
+const ART = {
+  build: `<div class="art coral art-build">
+      <div class="paper">${docHead}${ln(68)}${ln(53)}${ln(61, "ai")}${ln(30)}${ln(53)}</div>
+      <span class="float src li tiny"><span class="glyph" style="background:var(--kr-blue-very-light);color:var(--kr-blue)">${ic("linkedin")}</span>LinkedIn</span>
+      <span class="float src file tiny"><span class="glyph" style="background:var(--kr-primary-tint);color:var(--kr-primary)">${ic("fileText")}</span>resume.pdf</span>
+      <span class="ai-badge">${ic("sparkles")}</span>
+    </div>`,
+  tailor: `<div class="art blue art-tailor">
+      <div class="paper">${docHead}<span class="row" style="gap:3px">${ln(30)}${ln(34, "kw")}</span>${ln(53)}<span class="row" style="gap:3px">${ln(26, "kw")}${ln(34)}</span>${ln(30)}</div>
+      <div class="float job-ad">
+        <span class="row" style="gap:6px"><span class="glyph">${ic("briefcase")}</span><span class="col">${ln(44, "dk")}${ln(30)}</span></span>
+        ${ln(66)}${ln(52)}
+        <span class="pill match tiny">${ic("check")}92% match</span>
+      </div>
+    </div>`,
+  ats: `<div class="art mint art-ats">
+      <div class="float report">
+        <span class="row" style="gap:10px">
+          <span class="score"><svg viewBox="0 0 38 38" width="38" height="38"><circle cx="19" cy="19" r="15.9" fill="none" stroke="var(--kr-grey-40)" stroke-width="4"/><circle class="score-arc" cx="19" cy="19" r="15.9" fill="none" stroke="var(--kr-green-mint)" stroke-width="4" stroke-linecap="round" pathLength="100"/></svg><b>86</b></span>
+          <span class="col"><span class="tiny">ATS score</span>${ln(54)}</span>
+        </span>
+        <hr>
+        <div class="chk">
+          <span class="row" style="gap:7px"><span class="mark ok">${ic("check")}</span>${ln(78)}</span>
+          <span class="row" style="gap:7px"><span class="mark ok">${ic("check")}</span>${ln(60)}</span>
+          <span class="row" style="gap:7px"><span class="mark fix">${ic("alert")}</span>${ln(44)}<span class="pill fixit tiny" style="margin-left:auto">Fix</span></span>
+        </div>
+      </div>
+    </div>`,
+  jobs: `<div class="art sand art-jobs">
+      <div class="jobs">
+        ${[["building", "var(--kr-blue-very-light)", "var(--kr-blue)", 72, 46, "96%"], ["rocket", "var(--kr-primary-tint)", "var(--kr-primary)", 62, 38, "91%"], ["heart", "var(--kr-light-mint)", "var(--kr-green-mint)", 80, 50, "84%"]]
+          .map(([g, bg, fg, a, b, fit]) => `<div class="float job"><span class="glyph" style="background:${bg};color:${fg}">${ic(g)}</span><span class="col">${ln(a, "dk")}${ln(b)}</span><span class="pill fit tiny">${fit}</span></div>`).join("")}
+      </div>
+    </div>`,
+};
+
+/* ===== Goals: task-first title in the user's voice, benefit in the description ===== */
+const GOALS = [
+  { id: "build",  title: "Build my resume",           desc: "Import from LinkedIn or an old file, or start fresh. AI helps you write every section.", href: "create-resume.html" },
+  { id: "tailor", title: "Tailor my resume",          desc: "Paste a job ad and get your resume matched to its keywords and requirements.", next: "the tailoring flow: paste a job ad" },
+  { id: "ats",    title: "Pass the ATS check",        desc: "See your resume the way hiring software does, then fix what could get it filtered out.", next: "the ATS check: upload or pick a resume" },
+  { id: "jobs",   title: "Find jobs that fit me",     desc: "Get open roles matched to your skills and experience, so you spend less time searching.", next: "job matches based on your profile" },
+];
+
+const goals = document.getElementById("goals");
+goals.innerHTML = GOALS.map(g => {
+  return `<li><a class="goal" href="${g.href || "#" + g.id}" data-id="${g.id}">
+    <div aria-hidden="true">${ART[g.id]}</div>
+    <div class="goal-txt"><span class="goal-title">${g.title}${ic("arrowRight")}</span><span class="goal-desc">${g.desc}</span></div>
+  </a></li>`;
+}).join("");
+
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg; el.classList.add("on");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove("on"), 2600);
+}
+goals.addEventListener("click", e => {
+  const card = e.target.closest(".goal");
+  const goal = card && GOALS.find(g => g.id === card.dataset.id);
+  if (goal && !goal.href) { e.preventDefault(); toast(`Continues to ${goal.next}.`); }
+});
+document.getElementById("skip").onclick = () => toast("Takes you to your dashboard. You can pick a goal there anytime.");
+document.querySelector(".top a").onclick = e => e.preventDefault();
+</script>
+<style>
+/* Brand webfonts from the Kickresume Design System, embedded (Artifact CSP blocks other font hosts) */
+/*__FONTS__*/
+</style>
